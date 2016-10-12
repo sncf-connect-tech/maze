@@ -1,10 +1,10 @@
-package com.vsct.dt.dsl.topology
+package com.vsct.dt.maze.topology
 
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.github.dockerjava.api.command.{CreateContainerCmd, InspectContainerResponse}
 import com.github.dockerjava.api.model.{PortBinding, VolumesFrom}
-import com.vsct.dt.dsl.helpers.DockerNetwork
+import com.vsct.dt.maze.helpers.DockerNetwork
 
 import collection.JavaConverters._
 

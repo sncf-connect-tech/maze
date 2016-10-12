@@ -1,6 +1,6 @@
-package com.vsct.dt.dsl
+package com.vsct.dt.maze
 
-import com.vsct.dt.dsl.helpers.DockerNetwork
+import com.vsct.dt.maze.helpers.DockerNetwork
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FlatSpec, Matchers}
 
 abstract class TechnicalTest extends FlatSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {

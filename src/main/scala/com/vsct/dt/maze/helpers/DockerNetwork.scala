@@ -1,8 +1,8 @@
-package com.vsct.dt.dsl.helpers
+package com.vsct.dt.maze.helpers
 
 import java.net.InetAddress
 
-import com.vsct.dt.dsl.topology.{Docker, DockerClusterNode, NodeGroup}
+import com.vsct.dt.maze.topology.{Docker, DockerClusterNode, NodeGroup}
 
 import collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration

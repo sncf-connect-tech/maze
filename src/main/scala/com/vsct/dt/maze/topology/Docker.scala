@@ -1,4 +1,4 @@
-package com.vsct.dt.dsl.topology
+package com.vsct.dt.maze.topology
 
 import java.io.{Closeable, IOException}
 import java.net.{Proxy, ProxySelector, SocketAddress, URI}
@@ -12,8 +12,8 @@ import com.github.dockerjava.api.model.Network.Ipam.Config
 import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.{DefaultDockerClientConfig, DockerClientBuilder, DockerClientConfig}
 import com.github.dockerjava.jaxrs.JerseyDockerCmdExecFactory
-import com.vsct.dt.dsl.core.Execution
-import com.vsct.dt.dsl.helpers
+import com.vsct.dt.maze.core.Execution
+import com.vsct.dt.maze.helpers
 
 import collection.JavaConverters._
 import scala.language.postfixOps

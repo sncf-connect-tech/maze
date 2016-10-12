@@ -1,6 +1,6 @@
-package com.vsct.dt.dsl.core
+package com.vsct.dt.maze.core
 
-import com.vsct.dt.dsl.core.Predef._
+import com.vsct.dt.maze.core.Predef._
 import org.scalatest.FlatSpec
 
 import scala.util.{Failure, Success}

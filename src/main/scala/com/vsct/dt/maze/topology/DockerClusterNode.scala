@@ -1,9 +1,9 @@
-package com.vsct.dt.dsl.topology
+package com.vsct.dt.maze.topology
 
 import com.github.dockerjava.api.command.CreateContainerCmd
 import com.github.dockerjava.api.model.PortBinding
-import com.vsct.dt.dsl.core.Execution
-import com.vsct.dt.dsl.helpers.DockerNetwork
+import com.vsct.dt.maze.core.Execution
+import com.vsct.dt.maze.helpers.DockerNetwork
 
 import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions

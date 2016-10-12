@@ -1,11 +1,11 @@
-package com.vsct.dt.dsl.core
+package com.vsct.dt.maze.core
 
 import java.io.{BufferedReader, InputStreamReader, StringReader}
 import javax.xml.transform.stream.StreamSource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.vsct.dt.dsl.topology._
+import com.vsct.dt.maze.topology._
 import net.sf.saxon.s9api.{Processor, XdmItem, XdmValue}
 import org.apache.http.HttpResponse
 

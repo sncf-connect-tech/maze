@@ -1,6 +1,6 @@
-package com.vsct.dt.dsl.topology
+package com.vsct.dt.maze.topology
 
-import com.vsct.dt.dsl.core.{Commands, Execution, Predicate}
+import com.vsct.dt.maze.core.{Commands, Execution, Predicate}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps

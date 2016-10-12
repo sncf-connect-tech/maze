@@ -1,7 +1,7 @@
-package com.vsct.dt.dsl.helpers
+package com.vsct.dt.maze.helpers
 
-import com.vsct.dt.dsl.core.Predef._
-import com.vsct.dt.dsl.core.{Predicate, Result}
+import com.vsct.dt.maze.core.Predef._
+import com.vsct.dt.maze.core.{Predicate, Result}
 import org.apache.http._
 import org.apache.http.client.methods.{CloseableHttpResponse, HttpGet}
 import org.apache.http.entity.StringEntity

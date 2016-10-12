@@ -1,6 +1,6 @@
-package com.vsct.dt.dsl.helpers
+package com.vsct.dt.maze.helpers
 
-import com.vsct.dt.dsl.core.Execution
+import com.vsct.dt.maze.core.Execution
 import org.apache.http.HttpResponse
 import org.apache.http.client.HttpClient
 import org.apache.http.client.config.RequestConfig

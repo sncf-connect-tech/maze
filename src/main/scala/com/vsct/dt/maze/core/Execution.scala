@@ -1,4 +1,4 @@
-package com.vsct.dt.dsl.core
+package com.vsct.dt.maze.core
 
 import scala.util.{Failure, Success, Try}
 

@@ -1,6 +1,6 @@
-package com.vsct.dt.dsl.topology
+package com.vsct.dt.maze.topology
 
-import com.vsct.dt.dsl.core.Execution
+import com.vsct.dt.maze.core.Execution
 
 import scala.concurrent.duration.FiniteDuration
 

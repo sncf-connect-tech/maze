@@ -1,7 +1,7 @@
-package com.vsct.dt.dsl.core
+package com.vsct.dt.maze.core
 
 import org.scalatest.{FlatSpec, Matchers}
-import com.vsct.dt.dsl.core.Commands._
+import com.vsct.dt.maze.core.Commands._
 
 class CommandsTest extends FlatSpec with Matchers {
 

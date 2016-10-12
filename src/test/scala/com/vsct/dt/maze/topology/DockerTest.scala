@@ -1,10 +1,10 @@
-package com.vsct.dt.dsl.topology
+package com.vsct.dt.maze.topology
 
 import com.github.dockerjava.api.model.PortBinding
-import com.vsct.dt.dsl.TechnicalTest
-import com.vsct.dt.dsl.core.Commands._
-import com.vsct.dt.dsl.core.Predef._
-import com.vsct.dt.dsl.helpers.Http
+import com.vsct.dt.maze.TechnicalTest
+import com.vsct.dt.maze.core.Commands._
+import com.vsct.dt.maze.core.Predef._
+import com.vsct.dt.maze.helpers.Http
 
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}

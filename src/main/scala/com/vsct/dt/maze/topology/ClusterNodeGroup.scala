@@ -1,4 +1,4 @@
-package com.vsct.dt.dsl.topology
+package com.vsct.dt.maze.topology
 
 import scala.collection.mutable
 

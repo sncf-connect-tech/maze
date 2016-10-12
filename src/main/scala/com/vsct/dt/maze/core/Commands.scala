@@ -1,6 +1,6 @@
-package com.vsct.dt.dsl.core
+package com.vsct.dt.maze.core
 
-import com.vsct.dt.dsl.topology.{ClusterNode, ClusterNodeGroupBuilder, NodeGroup}
+import com.vsct.dt.maze.topology.{ClusterNode, ClusterNodeGroupBuilder, NodeGroup}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps

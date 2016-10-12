@@ -1,9 +1,9 @@
-package com.vsct.dt.dsl.helpers
+package com.vsct.dt.maze.helpers
 
 import javax.management.ObjectName
 import javax.management.remote.{JMXConnector, JMXConnectorFactory, JMXServiceURL}
 
-import com.vsct.dt.dsl.core.Execution
+import com.vsct.dt.maze.core.Execution
 
 object JMX {
 
