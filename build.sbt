@@ -4,7 +4,6 @@ version := "1.0.0-SNAPSHOT"
 
 scalaVersion := "2.12.0-RC1-ceaf419"
 
-
 libraryDependencies ++= Seq(
   "com.typesafe.akka" % "akka-actor_2.12.0-RC1" % "2.4.10",
   "org.scala-lang.modules" % "scala-xml_2.12.0-RC1" % "1.0.5",
@@ -17,5 +16,3 @@ libraryDependencies ++= Seq(
   "net.sf.saxon" % "Saxon-HE" % "9.6.0-5"
 )
 
-
-resolvers += "nexus at vsct" at "http://nexus/content/groups/public/"
