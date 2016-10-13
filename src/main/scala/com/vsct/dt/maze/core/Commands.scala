@@ -31,8 +31,8 @@ object Commands {
   private def stringRepresentation(a: Any): String = a match {
     case s: String => s
     case map: Map[_, _] => map.toList.map(e => s"${e._1} -> ${e._2}").mkString("\n")
-    case seq: Seq[_] => s"[${seq.mkString(",")}]"
-    case array: Array[_] => s"[${array.mkString(",")}]"
+    case seq: Seq[_] => seq.mkString("[",  ", ", "]")
+    case array: Array[_] => array.mkString("[",  ", ", "]")
     case other: Any => other.toString
   }
 
@@ -69,16 +69,16 @@ object Commands {
 
 
   /* repeatWhile methods */
-  def repeat(doSomething: () => Unit): RepeatWhileBuilder = {
+  def repeat(doSomething: => Unit): RepeatWhileBuilder = {
     new RepeatWhileBuilder(doSomething)
   }
 
-  class RepeatWhileBuilder(val doSomething: () => Unit) {
+  class RepeatWhileBuilder(doSomething: => Unit) {
     def `while`(predicate: Predicate): RepeatWhileBuilder2 = new RepeatWhileBuilder2(doSomething, predicate)
   }
 
-  class RepeatWhileBuilder2(val doSomething: () => Unit, val predicate: Predicate) {
-    def butNoLongerThan(duration: FiniteDuration): Unit = repeatWhile(predicate, duration)(doSomething())
+  class RepeatWhileBuilder2(doSomething: => Unit, predicate: Predicate) {
+    def butNoLongerThan(duration: FiniteDuration): Unit = repeatWhile(predicate, duration)(doSomething)
   }
 
   def repeatWhile(predicate: Predicate, butNoLongerThan: FiniteDuration = 5 minutes)(doSomething: => Unit): Unit =
