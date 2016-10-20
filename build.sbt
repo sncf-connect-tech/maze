@@ -1,6 +1,5 @@
 name := "maze"
 organization := "com.vsct.dt"
-version := "1.0.0-SNAPSHOT"
 
 scalaVersion := "2.12.0-RC1-ceaf419"
 
