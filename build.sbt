@@ -6,8 +6,6 @@ scalaVersion := "2.12.0-RC1"
 startYear := Some(2015)
 description := """Maze helps you automate your technical tests"""
 
-dependencyOverrides += "org.scala-lang" % "scala-compiler" % scalaVersion.value
-
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.4.10",
   "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
