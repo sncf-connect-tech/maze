@@ -17,8 +17,8 @@ libraryDependencies ++= Seq(
 
 publishTo := {
   if (version.value.trim.endsWith("SNAPSHOT"))
-    Some("VSCT Nexus DT snapshots" at "http://nexus/content/repositories/dt-snapshots/")
+    Some("Sonatype Nexus Repository Manager" at "http://nexus/content/repositories/dt-snapshots/")
   else
-    Some("VSCT Nexus DT releases" at "http://nexus/content/repositories/dt-releases/")
+    Some("Sonatype Nexus Repository Manager" at "http://nexus/content/repositories/dt-releases/")
 }
 
