@@ -15,3 +15,10 @@ libraryDependencies ++= Seq(
   "net.sf.saxon" % "Saxon-HE" % "9.6.0-5"
 )
 
+publishTo := {
+  if (version.value.trim.endsWith("SNAPSHOT"))
+    Some("VSCT Nexus DT snapshots" at "http://nexus/content/repositories/dt-snapshots/")
+  else
+    Some("VSCT Nexus DT releases" at "http://nexus/content/repositories/dt-releases/")
+}
+
