@@ -16,21 +16,23 @@
 
 package com.vsct.dt.maze.helpers
 
+import java.io.{BufferedReader, InputStream, InputStreamReader}
+
 import com.vsct.dt.maze.core.Execution
-import org.apache.http.HttpResponse
-import org.apache.http.client.HttpClient
+import org.apache.http
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.methods._
 import org.apache.http.entity.{ContentType, StringEntity}
-import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 
 import scala.language.implicitConversions
+import scala.util.Try
 
 
 object Http {
 
-  private def initHttpClient(): HttpClient = {
+  private def initHttpClient(): CloseableHttpClient = {
     val requestConfig: RequestConfig = RequestConfig.custom()
       .setConnectTimeout(5000)
       .setSocketTimeout(5000)
@@ -50,7 +52,7 @@ object Http {
   }
 
   // Use var to allow anyone to override it
-  var client: HttpClient = initHttpClient()
+  var client: CloseableHttpClient = initHttpClient()
 
   def get(url: String): Execution[HttpResponse] = {
     execute(new HttpGet(url))
@@ -69,7 +71,65 @@ object Http {
   }
 
   def execute(request: HttpUriRequest): Execution[HttpResponse] = {
-    Execution(() => client.execute(request)).labeled(request.toString)
+    Execution[HttpResponse](() => {
+      val response: CloseableHttpResponse = client.execute(request)
+      val result = HttpResponse(response)
+      Try(response.close())
+      result
+    }).labeled(request.toString)
+  }
+
+  trait HttpResponse {
+    def entity: String
+    def headers: Headers
+    def responseCode: Int
+  }
+
+  case class StringHttpResponse(
+                                 override val entity: String,
+                                 override val headers: Headers,
+                                 override val responseCode: Int) extends HttpResponse
+
+  class Headers(values: Array[Header]) {
+
+    private val headersAsMap: Map[String, Header] = values.map {h => (h.name, h)}.toMap
+
+    def header(name: String) = headersAsMap(name)
+    def headers: Map[String, Header] = headersAsMap
+
+  }
+
+  case class Header(name: String, values: Seq[String])
+
+  object Headers {
+    def header(h: http.Header) = {
+      Header(name = h.getName, values = h.getElements.map(_.getValue))
+    }
+
+    def apply(response: CloseableHttpResponse) = {
+      new Headers(response.getAllHeaders.map(header))
+    }
+  }
+
+  object HttpResponse {
+
+    private def read(in: java.io.InputStream): String = {
+      val content = new BufferedReader(new InputStreamReader(in, "UTF-8"))
+      val builder = new StringBuilder
+      content.lines().forEach { t: String => builder.append(t) }
+      builder.toString()
+    }
+
+    def apply(response: CloseableHttpResponse): HttpResponse = {
+      val stream: java.io.InputStream = response.getEntity.getContent
+      val content = read(stream)
+      StringHttpResponse(
+        responseCode = response.getStatusLine.getStatusCode,
+        entity = content,
+        headers = Headers(response)
+      )
+    }
+
   }
 
 }

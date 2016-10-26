@@ -16,14 +16,14 @@
 
 package com.vsct.dt.maze.core
 
-import java.io.{BufferedReader, InputStreamReader, StringReader}
+import java.io.StringReader
 import javax.xml.transform.stream.StreamSource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.vsct.dt.maze.helpers.Http.HttpResponse
 import com.vsct.dt.maze.topology._
 import net.sf.saxon.s9api.{Processor, XdmItem, XdmValue}
-import org.apache.http.HttpResponse
 
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -37,17 +37,12 @@ object Predef {
   private val xpathProcessor = new Processor(false)
 
   implicit class HttpExecution(val self: Execution[HttpResponse]) extends AnyVal {
-    def status: Execution[Int] = self.map(_.getStatusLine.getStatusCode).labeled(s"status code of ${self.label}")
+    def status: Execution[Int] = self.map(_.responseCode).labeled(s"status code of ${self.label}")
 
-    def response: Execution[String] = self.map { response =>
-      val content = new BufferedReader(new InputStreamReader(response.getEntity.getContent, "UTF-8"))
-      val builder = new StringBuilder
-      content.lines().forEach { t: String => builder.append(t) }
-      builder.toString()
-    }.labeled(s"Response to ${self.label}")
+    def response: Execution[String] = self.map(_.entity).labeled(s"Response to ${self.label}")
 
     def responseAs[A](c: Class[A]): Execution[A] = self.map { r =>
-      objectMapper.readValue(r.getEntity.getContent, c)
+      objectMapper.readValue(r.entity, c)
     }.labeled(s"Response to ${self.label} as instance of ${c.getName}")
 
     def isOk: Predicate = self.status.between(200, 299).labeled(self.label + " is ok?")
