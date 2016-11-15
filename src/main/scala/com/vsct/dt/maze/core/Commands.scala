@@ -16,13 +16,14 @@
 
 package com.vsct.dt.maze.core
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vsct.dt.maze.topology.{ClusterNode, ClusterNodeGroupBuilder, NodeGroup}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
-object Commands {
+object Commands extends LazyLogging {
 
   class UnexpectedResultException(message: String) extends RuntimeException(message)
 
@@ -41,7 +42,7 @@ object Commands {
       case Success(s) => stringRepresentation(s)
       case Failure(e) => s"An error occurred: ${e.getClass}: ${e.getMessage}"
     }
-    println(s"${dsl.label} -> $str")
+    logger.info(s"${dsl.label} -> $str")
   }
 
   private def stringRepresentation(a: Any): String = a match {

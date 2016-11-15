@@ -25,7 +25,9 @@ libraryDependencies ++= Seq(
   "com.google.code.findbugs" % "jsr305" % "3.0.1",
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.8.4",
   "org.scalatest" %% "scalatest" % "3.0.0",
-  "net.sf.saxon" % "Saxon-HE" % "9.6.0-5"
+  "net.sf.saxon" % "Saxon-HE" % "9.6.0-5",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
+  "ch.qos.logback" % "logback-classic" % "1.1.7" % "optional"
 )
 
 scalastyleConfig := file("project/scalastyle-config.xml")

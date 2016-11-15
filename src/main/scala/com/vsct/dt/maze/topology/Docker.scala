@@ -28,6 +28,7 @@ import com.github.dockerjava.api.model.Network.Ipam.Config
 import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.{DefaultDockerClientConfig, DockerClientBuilder, DockerClientConfig}
 import com.github.dockerjava.jaxrs.JerseyDockerCmdExecFactory
+import com.typesafe.scalalogging.LazyLogging
 import com.vsct.dt.maze.core.Execution
 import com.vsct.dt.maze.helpers
 
@@ -35,7 +36,7 @@ import collection.JavaConverters._
 import scala.language.postfixOps
 import scala.util.Try
 
-object Docker {
+object Docker extends LazyLogging {
 
   private val defaultProxySelector = ProxySelector.getDefault
 
@@ -161,8 +162,10 @@ object Docker {
       val lines = execResult.result.replaceAll("\r\n", "\n").split("\n")
 
       if (Option(execStatus.getExitCode).exists(_ != 0)) {
+        logger.debug(s"${commands.mkString(" ")}had error: ${lines.mkString("\n")}")
         throw DockerProcessExecution(execStatus.getExitCode, lines.toList)
       }
+      logger.debug(s"result of ${commands.mkString(" ")}:\n${lines.mkString("\n")}")
       lines
     }
     result
