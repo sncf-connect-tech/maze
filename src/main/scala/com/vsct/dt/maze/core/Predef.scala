@@ -45,7 +45,11 @@ object Predef {
       objectMapper.readValue(r.entity, c)
     }.labeled(s"Response to ${self.label} as instance of ${c.getName}")
 
-    def isOk: Predicate = self.status.between(200, 299).labeled(self.label + " is ok?")
+    def isOk: Predicate = {
+      val statusOk = 200
+      val maxOk = 299
+      self.status.between(statusOk, maxOk).labeled(self.label + " is ok?")
+    }
   }
 
   implicit def toRichExecution[A](value: A): RichExecution[A] = new RichExecution(Execution(() => value))

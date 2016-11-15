@@ -27,7 +27,7 @@ object JMX {
 
   def retrieveProperty[A](host: String, port: Int, jmxObject: String, property: String, castTo: Class[A]): Execution[A] = Execution(() => {
     val url: JMXServiceURL = new JMXServiceURL(jmxUrl(host, port))
-    val jmxConnector: JMXConnector = JMXConnectorFactory.connect(url, null)
+    val jmxConnector: JMXConnector = JMXConnectorFactory.connect(url)
     val result = castTo.cast(jmxConnector.getMBeanServerConnection.getAttribute(ObjectName.getInstance(jmxObject), property))
     jmxConnector.close()
     result

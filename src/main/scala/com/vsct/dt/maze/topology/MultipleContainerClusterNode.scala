@@ -58,7 +58,7 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode {
     dataIds.foreach(Docker.forceRemoveContainer)
   }
 
-  private def hasBeenStartedOnce(): Boolean = containerId != null
+  private def hasBeenStartedOnce(): Boolean = Option(containerId).isDefined
 
   private def startStoppedNode(): Unit = Docker.startCreatedContainer(containerId)
 

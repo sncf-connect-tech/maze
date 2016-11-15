@@ -119,15 +119,6 @@ trait ClusterNode {
     */
   def createFile(path: String, content: String): Unit
 
-  /**
-    * Convenient way to group nodes together
-    *
-    * @return a list of nodes
-    */
-  def ::(otherNode: ClusterNode): List[ClusterNode] = {
-    List(this, otherNode)
-  }
-
   override def toString: String = hostname
 
 }

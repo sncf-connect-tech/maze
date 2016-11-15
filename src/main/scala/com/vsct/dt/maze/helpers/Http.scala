@@ -16,7 +16,7 @@
 
 package com.vsct.dt.maze.helpers
 
-import java.io.{BufferedReader, InputStream, InputStreamReader}
+import java.io.{BufferedReader, InputStreamReader}
 
 import com.vsct.dt.maze.core.Execution
 import org.apache.http
@@ -32,17 +32,23 @@ import scala.util.Try
 
 object Http {
 
+  val defaultConnectTimeout: Int = 5000
+  val defaultSocketTimeout: Int = 5000
+  val defaultConnectionRequestTimeout: Int = 200
+  val defaultMaxConnections: Int = 100
+  val defaultMaxConnectionsPerRoute: Int = 50
+
   private def initHttpClient(): CloseableHttpClient = {
     val requestConfig: RequestConfig = RequestConfig.custom()
-      .setConnectTimeout(5000)
-      .setSocketTimeout(5000)
-      .setConnectionRequestTimeout(200)
+      .setConnectTimeout(defaultConnectTimeout)
+      .setSocketTimeout(defaultSocketTimeout)
+      .setConnectionRequestTimeout(defaultConnectionRequestTimeout)
       .build()
 
 
     val connectionManager = new PoolingHttpClientConnectionManager()
-    connectionManager.setDefaultMaxPerRoute(50)
-    connectionManager.setMaxTotal(100)
+    connectionManager.setDefaultMaxPerRoute(defaultMaxConnectionsPerRoute)
+    connectionManager.setMaxTotal(defaultMaxConnections)
 
     HttpClientBuilder.create()
       .useSystemProperties()

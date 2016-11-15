@@ -68,7 +68,7 @@ object Commands {
   }
 
   def waitUntil(predicate: Predicate, butNoLongerThan: FiniteDuration = 5 minutes): Duration =
-    waitInternal(predicate, _.result != Success(true), butNoLongerThan)
+    waitInternal(predicate, !_.result.getOrElse(true), butNoLongerThan)
 
 
   /* waitWhile methods */
@@ -81,7 +81,7 @@ object Commands {
   }
 
   def waitWhile(predicate: Predicate, butNoLongerThan: FiniteDuration = 5 minutes): Duration =
-    waitInternal(predicate, _.result == Success(true), butNoLongerThan)
+    waitInternal(predicate, _.result.getOrElse(false), butNoLongerThan)
 
 
   /* repeatWhile methods */
@@ -98,7 +98,7 @@ object Commands {
   }
 
   def repeatWhile(predicate: Predicate, butNoLongerThan: FiniteDuration = 5 minutes)(doSomething: => Unit): Unit =
-    repeatInternal(predicate, _.result == Success(true), butNoLongerThan)(doSomething)
+    repeatInternal(predicate, _.result.getOrElse(false), butNoLongerThan)(doSomething)
 
 
   /* internals */

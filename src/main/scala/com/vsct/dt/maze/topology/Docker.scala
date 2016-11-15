@@ -71,11 +71,18 @@ object Docker {
   private val configuration: DockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().withApiVersion("1.22")
     .withDockerTlsVerify(resolveTlsSupport()).withDockerHost(resolveDockerUri()).build()
 
-  private val dockerCmdExecFactory = new JerseyDockerCmdExecFactory()
-    .withReadTimeout(60000)
-    .withConnectTimeout(60000)
-    .withMaxTotalConnections(10)
-    .withMaxPerRouteConnections(10)
+  private val dockerCmdExecFactory = {
+    val readTimeout = 60000
+    val connectTimeout: Integer = 60000
+    val totalConnections: Integer = 10
+    val connectionsPerHost: Integer = 10
+
+    new JerseyDockerCmdExecFactory()
+      .withReadTimeout(readTimeout)
+      .withConnectTimeout(connectTimeout)
+      .withMaxTotalConnections(totalConnections)
+      .withMaxPerRouteConnections(connectionsPerHost)
+  }
 
   var client: DockerClient = DockerClientBuilder.getInstance(configuration)
     .withDockerCmdExecFactory(dockerCmdExecFactory).build
@@ -147,13 +154,13 @@ object Docker {
       var execStatus = client.inspectExecCmd(cmdId).exec()
       // Wait until execution finishes
       while (execStatus.isRunning) {
-        Thread.sleep(10)
+        sleep()
         execStatus = client.inspectExecCmd(cmdId).exec()
       }
 
       val lines = execResult.result.replaceAll("\r\n", "\n").split("\n")
 
-      if (execStatus.getExitCode != null && execStatus.getExitCode != 0) {
+      if (Option(execStatus.getExitCode).exists(_ != 0)) {
         throw DockerProcessExecution(execStatus.getExitCode, lines.toList)
       }
       lines
@@ -188,7 +195,7 @@ object Docker {
 
     def result: String = {
       while (!finished) {
-        Thread.sleep(10)
+        sleep()
       }
       builder.result()
     }
@@ -219,7 +226,7 @@ object Docker {
 
     def get(): List[T] = {
       while (!done) {
-        Thread.sleep(10)
+        sleep()
       }
       value
     }
@@ -250,6 +257,11 @@ object Docker {
   def executionCreateFileOnContainer(id: String, path: String, content: String): Execution[Array[String]] = {
     val timestamp = System.nanoTime()
     executionOnContainer(id, "/bin/sh", "-c", s"cat > '$path' <<-EOF-$timestamp\n$content\nEOF-$timestamp")
+  }
+
+  private def sleep() = {
+    val pauseTime: Long = 10
+    Thread.sleep(pauseTime)
   }
 
 }
