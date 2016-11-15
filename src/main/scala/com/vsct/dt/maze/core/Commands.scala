@@ -47,8 +47,8 @@ object Commands {
   private def stringRepresentation(a: Any): String = a match {
     case s: String => s
     case map: Map[_, _] => map.toList.map(e => s"${e._1} -> ${e._2}").mkString("\n")
-    case seq: Seq[_] => seq.mkString("[",  ", ", "]")
-    case array: Array[_] => array.mkString("[",  ", ", "]")
+    case seq: Seq[_] => seq.mkString("[", ", ", "]")
+    case array: Array[_] => array.mkString("[", ", ", "]")
     case other: Any => other.toString
   }
 
@@ -106,7 +106,10 @@ object Commands {
     waitFor(20 milliseconds)
   }
 
-  private def repeatInternal(predicate: Predicate, equalityFunction: PredicateResult => Boolean, butNoLongerThan: FiniteDuration = 5 minutes)(doSomething: => Unit): Duration = {
+  private def repeatInternal(predicate: Predicate,
+                             equalityFunction: PredicateResult => Boolean,
+                             butNoLongerThan: FiniteDuration = 5 minutes)
+                            (doSomething: => Unit): Duration = {
     val deadline = Deadline.now + butNoLongerThan
     var result = predicate.get()
     while (equalityFunction(result)) {

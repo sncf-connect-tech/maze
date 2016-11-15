@@ -70,7 +70,8 @@ object DockerNetwork {
 
     val everything: Set[DockerClusterNode] = partitions.flatMap(_.nodes).toSet
 
-    val ips: Map[String, String] = everything.map(node => (node.containerId, Docker.containerInfo(node.containerId).getNetworkSettings.getNetworks.get(networkName).getIpAddress)).toMap
+    val ips: Map[String, String] = everything.map(node => (node.containerId, Docker.containerInfo(node.containerId)
+      .getNetworkSettings.getNetworks.get(networkName).getIpAddress)).toMap
 
     // Reformat the data to get a map as such: Map[<container id>, Set[<invisible ip address>]]
     val unreacheables: Map[String, Set[String]] =

@@ -141,10 +141,11 @@ object Predef {
 
   implicit class ArrayExecution[A: ClassTag](val self: Execution[Array[A]]) {
 
-    def contains(condition: (A) => Boolean, functionText: String): Predicate = self.map(_.contains(condition)).toPredicate(s"${self.label} contains $functionText ?") {
-      case a if a => Result.success
-      case _ => Result.failure(s"Expected array to contain '$functionText'")
-    }
+    def contains(condition: (A) => Boolean, functionText: String): Predicate =
+      self.map(_.contains(condition)).toPredicate(s"${self.label} contains $functionText ?") {
+        case a if a => Result.success
+        case _ => Result.failure(s"Expected array to contain '$functionText'")
+      }
 
     def length: Execution[Int] = self.map(_.length).labeled(s"the length of ${self.label}")
 
@@ -401,7 +402,7 @@ object Predef {
 
   implicit def stringToSeqNode[T <: ClusterNode](name: String): Seq[T] = ClusterNodeGroup[T](name).nodes
 
-//  implicit def stringToClusterNodeGroup(name: String): ClusterNodeGroup = ClusterNodeGroup(name)
+  //  implicit def stringToClusterNodeGroup(name: String): ClusterNodeGroup = ClusterNodeGroup(name)
 
   /* Implicit related to ClusterNode */
   implicit class IntToClusterNodeBuilder(val n: Int) extends AnyVal {
@@ -417,6 +418,7 @@ object Predef {
   implicit def nodeProducerToNodeBuilder[T <: ClusterNode](producer: => T): Seq[String] => T = (_: Seq[String]) => producer
 
   implicit def clusterNodeToNodeGroup(node: DockerClusterNode): NodeGroup = new NodeGroup(Seq(node))
+
   implicit def clusterNodesToNodeGroup(nodes: Seq[DockerClusterNode]): NodeGroup = new NodeGroup(nodes)
 
 }

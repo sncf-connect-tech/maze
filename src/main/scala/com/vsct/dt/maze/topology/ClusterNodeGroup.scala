@@ -47,5 +47,5 @@ object ClusterNodeGroup {
     groups.getOrElse(name, new ClusterNodeGroup[T](name, Seq())).asInstanceOf[ClusterNodeGroup[T]]
   }
 
-  def apply[T <: ClusterNode](name: String, nodes:Seq[T]) = new ClusterNodeGroup[T](name, nodes)
+  def apply[T <: ClusterNode](name: String, nodes:Seq[T]): ClusterNodeGroup[T] = new ClusterNodeGroup[T](name, nodes)
 }

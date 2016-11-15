@@ -94,7 +94,7 @@ object Http {
 
     private val headersAsMap: Map[String, Header] = values.map {h => (h.name, h)}.toMap
 
-    def header(name: String) = headersAsMap(name)
+    def header(name: String): Header = headersAsMap(name)
     def headers: Map[String, Header] = headersAsMap
 
   }
@@ -102,11 +102,11 @@ object Http {
   case class Header(name: String, values: Seq[String])
 
   object Headers {
-    def header(h: http.Header) = {
+    def header(h: http.Header): Header = {
       Header(name = h.getName, values = h.getElements.map(_.getValue))
     }
 
-    def apply(response: CloseableHttpResponse) = {
+    def apply(response: CloseableHttpResponse): Headers = {
       new Headers(response.getAllHeaders.map(header))
     }
   }

@@ -44,7 +44,9 @@ object Docker {
       override def select(uri: URI): util.List[Proxy] = {
         val modified = if (uri.getScheme == "tcp") {
           new URI("http", uri.getUserInfo, uri.getHost, uri.getPort, uri.getPath, uri.getQuery, uri.getFragment)
-        } else uri
+        } else {
+          uri
+        }
 
         defaultProxySelector.select(modified)
       }
@@ -97,7 +99,6 @@ object Docker {
     val image = if (img.contains(":")) img else img + ":latest"
     val images = client.listImagesCmd().withImageNameFilter(image).exec()
     if (!images.asScala.exists(_.getRepoTags.contains(image))) {
-      println(s"Pulling $image...")
       client.pullImageCmd(image).exec(new WaitForCallbackResponse[PullResponseItem]()).get()
     }
 
@@ -157,10 +158,6 @@ object Docker {
       }
       lines
     }
-//    result match {
-//      case Success(lines) => println("success: " + lines.mkString("\n"))
-//      case Failure(e) => e.printStackTrace()
-//    }
     result
   }
 

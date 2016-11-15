@@ -41,8 +41,12 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode {
   def dataContainers: Seq[CreateContainerCmd]
 
   override def start(): Unit = {
-    if (hasBeenStartedOnce()) startStoppedNode()
-    else startFirstTime()
+    if (hasBeenStartedOnce()) {
+      startStoppedNode()
+    }
+    else {
+      startFirstTime()
+    }
   }
 
   override def stop(): Unit = {
@@ -75,7 +79,9 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode {
       // Keep user defined bindings
       .withPortBindings(
       (Docker.constructBinding(servicePort) ::
-        Option(serviceContainer.getPortBindings).map(_.getBindings.asScala.toList.flatMap(b => b._2.map(bind => new PortBinding(bind, b._1)))).getOrElse(List())).asJava
+        Option(serviceContainer.getPortBindings)
+          .map(_.getBindings.asScala.toList.flatMap(b => b._2.map(bind => new PortBinding(bind, b._1))))
+          .getOrElse(List())).asJava
     )
       .withName(hostname)
 

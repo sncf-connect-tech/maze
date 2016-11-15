@@ -11,3 +11,6 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.0",
   "net.sf.saxon" % "Saxon-HE" % "9.6.0-5"
 )
+
+scalastyleConfig := file("project/scalastyle-config.xml")
+scalastyleFailOnError := true

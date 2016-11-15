@@ -33,10 +33,14 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
   def start(): Unit = {
     beforeStart()
 
-    if (parallel) nodes.par.foreach(_.start())
-    else nodes.foreach { node =>
-      node.start()
-      Commands.waitFor(2 seconds)
+    if (parallel) {
+      nodes.par.foreach(_.start())
+    }
+    else {
+      nodes.foreach { node =>
+        node.start()
+        Commands.waitFor(2 seconds)
+      }
     }
 
     afterStart()
@@ -59,7 +63,8 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
   }
 
   private def generateInternal(nodeBuilder: ClusterNodeBuilder[T])(implicit ct: ClassTag[T]): Seq[T] = {
-    //generate names first, so things like connection strings or any combination of the generated names that can be useful for the nodes themselves can be used in constructor
+    //generate names first, so things like connection strings or any combination of the generated names
+    // that can be useful for the nodes themselves can be used in constructor
     val names = 1 to nodeBuilder.numberOfNodes map { _ => nodeBuilder.hostnameBuilder() }
     val newNodes = names map { hostname =>
       val node: T = nodeBuilder.nodeBuilder(names)
@@ -86,11 +91,11 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
     nodes.find(_.ip == ip).get
   }
 
-  def find_the_node_which(fn: T => Predicate): Execution[T] = {
+  def findTheNodeWhich(fn: T => Predicate): Execution[T] = {
     Execution(() => nodes.find(node => fn(node).execute())).map(_.get).labeled("node matching predicate")
   }
 
-  def filter_the_nodes_with_condition(fn: (T) => Predicate): Execution[Array[T]] = {
+  def filterTheNodesWithCondition(fn: (T) => Predicate): Execution[Array[T]] = {
     Execution(() => nodes.toArray.filter(node => fn(node).execute())).labeled("nodes filtered")
   }
 
