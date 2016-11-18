@@ -39,3 +39,7 @@ developers := List (
 homepage := Some(url("http://github.com/voyages-sncf-technologies/maze/tree/master"))
 name := s"${organization.value}:${moduleName.value}"
 pomIncludeRepository := {repo => false}
+
+publishMavenStyle := true
+
+publishArtifact in Test := false
