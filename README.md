@@ -1,22 +1,82 @@
 
-# Le module DSL
+# Maze, automate your technical tests
 ==========
 
-Ceci est le coeur du projet.
+Maze is a tool to automate technical tests. You might want them in some of the following cases :
 
-Il définit différentes couches d'abstraction au dessus de docker et des outils à tester.
+- You have a new product (kafka, redis, ...) you need to deploy for your application,
+  and want to understand how it behaves to configure it as needed and understand better what could happen in production
+- You need to connect to some external system and want to make sure your application will be robust when perturbations happen
+- You have micro-services architecture with some scenarios including different components
+  and want to make sure you will always have consistent behaviour when perturbations happen
+- You need to run these tests frequently to ensure you don't have resilience regressions
 
-## La philosophie
+## How it works
 ----------
 
-Les différents tests sont des tests unitaires, lancés avec scalatest. Ils se trouvent dans src/test/scala.
+Maze is a unit test library, made for scalatest, that will have the following lifecycle :
 
-Ces tests contiennent plusieurs phases :
+- In the beginning of a test, create a dedicated docker network
+- Before each test, start the configured clusters
+- execute the test
+- Stop the clusters
+- In the end of all the tests, remove the network
 
-  - En début de test, création d'un network dédié
-  - Avant chaque test, lancement des clusters, dans l'ordre permettant une bonne initialisation
-  - A la fin de chaque test, extinction et nettoyage des différents clusters
-  - A la fin des tests, suppression du network
+
+All the tests will then consist in communications with your applications / tools, deployed as docker images and the unit test, orchestrating them.
+
+## Get it in your project
+----------
+
+### Using sbt (preferred)
+
+```scala
+scalaVersion := 2.12
+
+libraryDependencies += "com.vsct.dt" %% "maze" % "1.0.3"
+```
+
+### Using maven
+
+```xml
+...
+<dependency>
+  <groupId>com.vsct.dt</groupId>
+  <artifactId>maze_2.12</artifactId>
+  <version>1.0.3</version>
+</dependency>
+...
+<plugin>
+    <groupId>net.alchim31.maven</groupId>
+    <artifactId>scala-maven-plugin</artifactId>
+    <version>3.2.2</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>compile</goal>
+                <goal>testCompile</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+<plugin>
+    <groupId>org.scalatest</groupId>
+    <artifactId>scalatest-maven-plugin</artifactId>
+    <version>1.0</version>
+    <configuration>
+        <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+        <junitxml>.</junitxml>
+        <filereports>TestSuite.txt</filereports>
+    </configuration>
+</plugin>
+```
+
+## Developing a test using maze
+----------
+
+
+
+
 
 
 Afin d'utiliser les différents outils, les tests sont configurés en étendant un trait de configuration.
