@@ -1,6 +1,6 @@
 
 # Maze, automate your technical tests
-==========
+
 
 Maze is a tool to automate technical tests. You might want them in some of the following cases :
 
@@ -12,7 +12,7 @@ Maze is a tool to automate technical tests. You might want them in some of the f
 - You need to run these tests frequently to ensure you don't have resilience regressions
 
 ## How it works
-----------
+
 
 Maze is a unit test library, made for scalatest, that will have the following lifecycle :
 
@@ -26,7 +26,7 @@ Maze is a unit test library, made for scalatest, that will have the following li
 All the tests will then consist in communications with your applications / tools, deployed as docker images and the unit test, orchestrating them.
 
 ## Get it in your project
-----------
+
 
 ### Using sbt (preferred)
 
@@ -72,7 +72,7 @@ libraryDependencies += "com.vsct.dt" %% "maze" % "1.0.3"
 ```
 
 ## Developing a test using maze
-----------
+
 
 
 
@@ -97,19 +97,19 @@ Actuellement, les cas d'usage de ces objets sont :
 Le trait DSL (l'implémentation des méthodes a été supprimée pour plus de clarté) :
 
 ```scala
-trait DSL[A] { self =>
+trait Execution[A] {
 
-  val stringFragment: String
+  val label: String
 
-  def get(): ExecutionResult[A]
+  def execute(): Try[A]
 
-  def map[B](f: (A) => B, fragment: String = self.stringFragment): DSL[B] = ...
+  def map[B](f: (A) => B): Execution[B] = ...
 
-  def flatMap[B](f: (A) => DSL[B]): DSL[B] = ...
+  def flatMap[B](f: (A) => Execution[B]): Execution[B] = ...
 
   def value(): A = get().result.get
 
-  def withText(text: String): DSL[A] = ...
+  def labelled(text: String): Execution[A] = ...
 
 }
 ```
@@ -130,8 +130,8 @@ Enrichir les objets DSL selon leur type :
 
 Afin d'enrichir les objets de type DSL sans polluer le trait de base, des méthodes sont ajoutées aux objets, selon le type qu'ils enveloppent.
 
-Ainsi, un objet de type DSL[String] aura des méthodes telles que length ou contains.
-De même, pour tout objet de type DSL (DSL[Any]), certaines méthodes sont ajoutées, telles que is ou isNot.
+Ainsi, un objet de type Execution[String] aura des méthodes telles que length ou contains.
+De même, pour tout objet de type Execution (Execution[Any]), certaines méthodes sont ajoutées, telles que is ou isNot.
 
 Cet enrichissement est fait par le mécanisme de conversions implicites.
 
