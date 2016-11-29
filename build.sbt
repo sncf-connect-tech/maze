@@ -15,7 +15,7 @@
  */
 
 moduleName := "maze"
-organization := "com.vsct.dt"
+organization := "fr.vsct.dt"
 
 scalaVersion := "2.12.0"
 
