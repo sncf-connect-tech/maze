@@ -32,3 +32,5 @@ libraryDependencies ++= Seq(
 
 scalastyleConfig := file("project/scalastyle-config.xml")
 scalastyleFailOnError := true
+
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
