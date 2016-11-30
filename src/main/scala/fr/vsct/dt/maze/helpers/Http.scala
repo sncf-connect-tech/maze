@@ -127,7 +127,7 @@ object Http {
     }
 
     def apply(response: CloseableHttpResponse): HttpResponse = {
-      val stream: Option[String] = Option(response).map(_.getEntity).map(_.getContent).map(read)
+      val stream: Option[String] = Option(response.getEntity).flatMap(e => Option(e.getContent)).map(read)
       StringHttpResponse(
         responseCode = response.getStatusLine.getStatusCode,
         entity = stream.orNull,
