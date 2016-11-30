@@ -107,6 +107,7 @@ object Docker extends LazyLogging {
     val image = if (img.contains(":")) img else img + ":latest"
     val images = client.listImagesCmd().withImageNameFilter(image).exec()
     if (!images.asScala.exists(_.getRepoTags.contains(image))) {
+      logger.info(s"Pulling image $image...")
       client.pullImageCmd(image).exec(new WaitForCallbackResponse[PullResponseItem]()).get()
     }
 
