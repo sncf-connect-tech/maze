@@ -118,14 +118,15 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode {
     * @return the IP on which a given port is mapped
     */
   def getMappedIp(internalPort: Int, info: InspectContainerResponse): String = {
-    info
-      .getNetworkSettings.getPorts.getBindings.asScala
-      .find(p => Option(p._1.getPort).contains(internalPort))
-      .flatMap(m => Option(m._2))
-      .map(_.toList)
-      .flatMap(_.headOption)
-      .map(_.getHostIp)
-      .filter(_ != "0.0.0.0")
+    Option(info.getNetworkSettings.getPorts)
+      .flatMap(
+        _.getBindings.asScala.find(p => Option(p._1.getPort).contains(internalPort))
+          .flatMap(m => Option(m._2))
+          .map(_.toList)
+          .flatMap(_.headOption)
+          .map(_.getHostIp)
+          .filter(_ != "0.0.0.0")
+      )
       .getOrElse(Docker.host.nameOrIp)
   }
 
@@ -137,12 +138,14 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode {
     * @return the port mapping to some given internal port
     */
   def getMappedPort(internalPort: Int, info: InspectContainerResponse): Option[Int] = {
-    info
-      .getNetworkSettings.getPorts.getBindings.asScala
-      .find(p => Option(p._1.getPort).contains(internalPort))
-      .flatMap(m => Option(m._2))
-      .map(_.toList)
-      .flatMap(_.headOption)
+    Option(info.getNetworkSettings.getPorts)
+      .flatMap(
+        _.getBindings.asScala
+          .find(p => Option(p._1.getPort).contains(internalPort))
+          .flatMap(m => Option(m._2))
+          .map(_.toList)
+          .flatMap(_.headOption)
+      )
       .map(_.getHostPortSpec.toInt)
   }
 
