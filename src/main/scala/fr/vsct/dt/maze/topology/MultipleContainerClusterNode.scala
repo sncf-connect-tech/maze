@@ -20,11 +20,12 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.github.dockerjava.api.command.{CreateContainerCmd, InspectContainerResponse}
 import com.github.dockerjava.api.model.{PortBinding, VolumesFrom}
+import com.typesafe.scalalogging.StrictLogging
 import fr.vsct.dt.maze.helpers.DockerNetwork
 
 import collection.JavaConverters._
 
-abstract class MultipleContainerClusterNode extends DockerClusterNode {
+abstract class MultipleContainerClusterNode extends DockerClusterNode with StrictLogging {
 
   private[this] var mappedServicePort: Option[Int] = None
   private[this] var mappedServiceIp: String = ""
@@ -94,6 +95,10 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode {
     mappedServicePort = getMappedPort(servicePort, info)
     mappedServiceIp = getMappedIp(servicePort, info)
     containerIp = info.getNetworkSettings.getNetworks.get(DockerNetwork.networkName).getIpAddress
+
+    if(!Option(info.getState.getRunning).exists(_.booleanValue())) {
+      logger.warn(s"Container $hostname is not running, state is ${info.getState.getStatus}")
+    }
 
     afterStart(info)
   }
