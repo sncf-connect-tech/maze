@@ -98,7 +98,7 @@ object Commands extends LazyLogging {
     def butNoLongerThan(duration: FiniteDuration): Unit = repeatWhile(predicate, duration)(doSomething)
   }
 
-  def repeatWhile(predicate: Predicate, butNoLongerThan: FiniteDuration = 5 minutes)(doSomething: => Unit): Unit =
+  def repeatWhile(predicate: Predicate, butNoLongerThan: FiniteDuration = 5 minutes)(doSomething: => Unit): Duration =
     repeatInternal(predicate, _.result.getOrElse(false), butNoLongerThan)(doSomething)
 
 
