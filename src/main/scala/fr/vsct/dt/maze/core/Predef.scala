@@ -407,9 +407,4 @@ object Predef {
 
   implicit def clusterNodesToNodeGroup(nodes: Seq[DockerClusterNode]): NodeGroup = new NodeGroup(nodes)
 
-  /* Implicit related to group of nodes */
-  implicit def nodeToListOfNodes[T <: ClusterNode](node: T): List[T] = List(node)
-
-  implicit def stringToSeqNode[T <: ClusterNode](name: String): Seq[T] = ClusterNodeGroup[T](name).nodes
-
 }
