@@ -52,8 +52,6 @@ object Predef {
     }
   }
 
-  implicit def toRichExecution[A](value: A): RichExecution[A] = new RichExecution(Execution(() => value))
-
   implicit class RichExecution[A](val self: Execution[A]) extends AnyVal {
     private def toExecutionWrappingExecuted: Execution[A] = {
       val returnValue = self.execute()
@@ -124,8 +122,6 @@ object Predef {
 
   }
 
-  implicit def optionClusterNodeToExecutionClusterNode[T <: SingleContainerClusterNode](opt: Option[T]): Execution[Option[T]] = Execution(() => opt)
-
   implicit class OptionExecution[A](val self: Execution[Option[A]]) extends AnyVal {
 
     def exists(): Predicate = {
@@ -140,8 +136,6 @@ object Predef {
     def getOrElse(defaultValue: A): Execution[A] = self.map(_.getOrElse(defaultValue))
 
   }
-
-  //  implicit def toArrayExecution[A: ClassTag](value: Array[A]): ArrayExecution[A] = new ArrayExecution(Execution[Array[A]](() => value))
 
   implicit class ArrayExecution[A: ClassTag](val self: Execution[Array[A]]) {
 
@@ -177,8 +171,6 @@ object Predef {
 
   }
 
-  implicit def toMapExecution[KEY, A](value: Map[KEY, A]): MapExecution[KEY, A] = new MapExecution(Execution(() => value))
-
   implicit class MapExecution[KEY, A](val self: Execution[Map[KEY, A]]) extends AnyVal {
     def hasKey(key: KEY): Predicate = self.toPredicate(s"${self.label} contains $key?") {
       case m if m.contains(key) => Result.success
@@ -199,8 +191,6 @@ object Predef {
       case _ => Result.failure(s"Expected map to be not empty, but it is empty")
     }
   }
-
-  implicit def toStringExecution(value: String): StringExecution = new StringExecution(Execution(() => value))
 
   implicit class StringExecution(val self: Execution[String]) extends AnyVal {
     def contains(fragment: String): Predicate = self.toPredicate(s"${self.label} contains '$fragment'?") {
@@ -237,8 +227,6 @@ object Predef {
     def stringValue(): Execution[String] = self.map(_.getStringValue)
 
   }
-
-  implicit def toIntExecution(value: Int): IntExecution = new IntExecution(Execution(() => value))
 
   implicit class IntExecution(val self: Execution[Int]) extends AnyVal {
     def >=(other: Execution[Int]): Predicate = new Predicate {
@@ -401,13 +389,6 @@ object Predef {
 
   def emptyArray[A: ClassTag](): Execution[Array[A]] = Execution(() => Array[A]()).labeled("Empty list")
 
-  /* Implicit related to group of nodes */
-  implicit def nodeToListOfNodes[T <: ClusterNode](node: T): List[T] = List(node)
-
-  implicit def stringToSeqNode[T <: ClusterNode](name: String): Seq[T] = ClusterNodeGroup[T](name).nodes
-
-  //  implicit def stringToClusterNodeGroup(name: String): ClusterNodeGroup = ClusterNodeGroup(name)
-
   /* Implicit related to ClusterNode */
   implicit class IntToClusterNodeBuilder(val n: Int) extends AnyVal {
     def nodes[T <: ClusterNode]: MultipleClusterNodeBuilderStepOne = {
@@ -422,10 +403,13 @@ object Predef {
     }
   }
 
-  implicit def nodeProducerToNodeBuilder[T <: ClusterNode](producer: => T): Seq[String] => T = (_: Seq[String]) => producer
-
   implicit def clusterNodeToNodeGroup(node: DockerClusterNode): NodeGroup = new NodeGroup(Seq(node))
 
   implicit def clusterNodesToNodeGroup(nodes: Seq[DockerClusterNode]): NodeGroup = new NodeGroup(nodes)
+
+  /* Implicit related to group of nodes */
+  implicit def nodeToListOfNodes[T <: ClusterNode](node: T): List[T] = List(node)
+
+  implicit def stringToSeqNode[T <: ClusterNode](name: String): Seq[T] = ClusterNodeGroup[T](name).nodes
 
 }

@@ -122,6 +122,11 @@ class SingleClusterNodeBuilderStepTwo(val hostnamePrefix: String) {
   def constructedLike[T <: ClusterNode](nodeBuilder: Seq[String] => T): SingleClusterNodeBuilder[T] = {
     new SingleClusterNodeBuilder[T](() => hostnamePrefix + "-" + HostNames.getNextIndex(hostnamePrefix), nodeBuilder)
   }
+
+  def constructedLike[T <: ClusterNode](nodeBuilder: => T): SingleClusterNodeBuilder[T] = {
+    constructedLike(_ => nodeBuilder)
+  }
+
 }
 
 class MultipleClusterNodeBuilderStepOne(val numberOfNodes: Int) {
@@ -134,6 +139,12 @@ class MultipleClusterNodeBuilderStepTwo(val numberOfNodes: Int, val hostnamePref
   def constructedLike[T <: ClusterNode](nodeBuilder: Seq[String] => T): MultipleClusterNodeBuilder[T] = {
     new MultipleClusterNodeBuilder[T](numberOfNodes, () => hostnamePrefix + "-" + HostNames.getNextIndex(hostnamePrefix), nodeBuilder)
   }
+
+  def constructedLike[T <: ClusterNode](nodeBuilder: => T): MultipleClusterNodeBuilder[T] = {
+    constructedLike(_ => nodeBuilder)
+  }
+
+
 }
 
 trait ClusterNodeBuilder[T <: ClusterNode] {
