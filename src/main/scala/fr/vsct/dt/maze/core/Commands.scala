@@ -16,19 +16,28 @@
 
 package fr.vsct.dt.maze.core
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import fr.vsct.dt.maze.topology.{ClusterNode, ClusterNodeGroupBuilder, NodeGroup}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
-object Commands extends LazyLogging {
+/**
+  * The Commands object contains utility methods to manipulate Execution and Predicate instances.
+  */
+object Commands extends StrictLogging {
 
   class UnexpectedResultException(message: String) extends RuntimeException(message)
 
   class TimeoutException(message: String) extends RuntimeException(message)
 
+  /**
+    * Assert that a predicate will return a true value.
+    *
+    * @param predicate the predicate to test
+    * @throws UnexpectedResultException if the predicate return false
+    */
   def expectThat(predicate: Predicate): Unit = {
     predicate.get() match {
       case PredicateResult(Success(true), _) =>
@@ -37,12 +46,17 @@ object Commands extends LazyLogging {
     }
   }
 
-  def print(dsl: Execution[_]): Unit = {
-    val str: String = dsl.execute() match {
+  /**
+    * Print an Execution and its result using the current logger
+    *
+    * @param execution the execution to print
+    */
+  def print(execution: Execution[_]): Unit = {
+    val str: String = execution.execute() match {
       case Success(s) => stringRepresentation(s)
       case Failure(e) => s"An error occurred: ${e.getClass}: ${e.getMessage}"
     }
-    logger.info(s"${dsl.label} -> $str")
+    logger.info(s"${execution.label} -> $str")
   }
 
   private def stringRepresentation(a: Any): String = a match {
@@ -53,10 +67,30 @@ object Commands extends LazyLogging {
     case other: Any => other.toString
   }
 
+  /**
+    * returns the result of an Execution, throwing exceptions if any is raised during the process
+    *
+    * @param execution the Execution to evaluate
+    * @tparam A the type of the Execution
+    * @return the value of the execution, may throw exceptions
+    */
   def exec[A](execution: Execution[A]): A = execution.execute().get
 
-  def exec[A](executions: Seq[Execution[A]]): Unit = executions.foreach(execution => exec(execution))
+  /**
+    * returns the result of sevral Executions, throwing exceptions if any is raised during the process
+    * The Execution are evaluated sequentially.
+    *
+    * @param executions the sequence of Execution to evaluate
+    * @tparam A the type of the Executions
+    * @return the values of the executions, may throw exceptions
+    */
+  def exec[A](executions: Seq[Execution[A]]): Seq[A] = executions.map(execution => exec(execution))
 
+  /**
+    * Block the current thread for a given time
+    *
+    * @param duration the time to wait
+    */
   def waitFor(duration: FiniteDuration): Unit = Thread.sleep(duration.toMillis)
 
   /* WaitUntil methods */
