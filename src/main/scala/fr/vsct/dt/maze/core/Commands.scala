@@ -17,7 +17,7 @@
 package fr.vsct.dt.maze.core
 
 import com.typesafe.scalalogging.StrictLogging
-import fr.vsct.dt.maze.topology.{ClusterNode, ClusterNodeGroupBuilder, NodeGroup}
+import fr.vsct.dt.maze.topology.{ClusterNodeGroupBuilder, DockerClusterNode, NodeGroup}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -158,7 +158,7 @@ object Commands extends StrictLogging {
   }
 
   /* Nodes group methods */
-  def tag(group: NodeGroup): ClusterNodeGroupBuilder[ClusterNode] = {
+  def tag(group: NodeGroup): ClusterNodeGroupBuilder[DockerClusterNode] = {
     new ClusterNodeGroupBuilder(group.nodes)
   }
 

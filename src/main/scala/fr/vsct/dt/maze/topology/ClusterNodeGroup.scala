@@ -16,15 +16,19 @@
 
 package fr.vsct.dt.maze.topology
 
+import java.util.UUID
+
+import fr.vsct.dt.maze.helpers.DockerNetwork
+
 import scala.collection.mutable
 
-class ClusterNodeGroupBuilder[T <: ClusterNode](val nodes: Seq[T]){
+class ClusterNodeGroupBuilder[T <: DockerClusterNode](val nodes: Seq[T]){
   def as(name: String):ClusterNodeGroup[T] = {
     new ClusterNodeGroup[T](name, nodes)
   }
 }
 
-class ClusterNodeGroup[+T <: ClusterNode](val name: String, val nodes: Seq[T]) {
+class ClusterNodeGroup[+T <: DockerClusterNode](val name: String, val nodes: Seq[T]) {
 
   ClusterNodeGroup.register(this)
 
@@ -33,19 +37,33 @@ class ClusterNodeGroup[+T <: ClusterNode](val name: String, val nodes: Seq[T]) {
   def apply(index: Int): T = nodes(index)
 
   def iterator: Iterator[T] = nodes.iterator
+
+  def isolate(): Unit = {
+    DockerNetwork.isolate(this)
+  }
 }
 
 object ClusterNodeGroup {
 
-  val groups: mutable.HashMap[String, ClusterNodeGroup[ClusterNode]] = mutable.HashMap()
+  val groups: mutable.HashMap[String, ClusterNodeGroup[DockerClusterNode]] = mutable.HashMap()
 
-  def register[T <: ClusterNode](group: ClusterNodeGroup[T]): Option[ClusterNodeGroup[ClusterNode]] = {
+  def register[T <: DockerClusterNode](group: ClusterNodeGroup[T]): Option[ClusterNodeGroup[DockerClusterNode]] = {
     this.groups.put(group.name, group)
   }
 
-  def apply[T <: ClusterNode](name: String):ClusterNodeGroup[T] = {
+  def get[T <: DockerClusterNode](name: String):ClusterNodeGroup[T] = {
     groups.getOrElse(name, new ClusterNodeGroup[T](name, Seq())).asInstanceOf[ClusterNodeGroup[T]]
   }
 
-  def apply[T <: ClusterNode](name: String, nodes:Seq[T]): ClusterNodeGroup[T] = new ClusterNodeGroup[T](name, nodes)
+  def apply[T <: DockerClusterNode](nodes:Seq[T], name: String): ClusterNodeGroup[T] = {
+    val resolvedName = if(name == "undefined") {
+      UUID.randomUUID().toString
+    } else {
+      name
+    }
+    new ClusterNodeGroup[T](resolvedName, nodes)
+  }
+
+  def apply[T <: DockerClusterNode](node:T, name: String = "undefined"): ClusterNodeGroup[T] = ClusterNodeGroup(Seq(node), name)
+
 }
