@@ -415,6 +415,9 @@ object Predef {
     }
 
     def node[T <: ClusterNode]: SingleClusterNodeBuilderStepOne = {
+      if(n != 1) {
+        throw new IllegalArgumentException("the 'node' method can only be used if the number of nodes is 1, else use 'nodes'.")
+      }
       new SingleClusterNodeBuilderStepOne
     }
   }
