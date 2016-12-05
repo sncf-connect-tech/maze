@@ -62,16 +62,9 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
     generateInternal(nodeBuilder).head
   }
 
-  private def generateInternal(nodeBuilder: ClusterNodeBuilder[T])(implicit ct: ClassTag[T]): Seq[T] = {
-    //generate names first, so things like connection strings or any combination of the generated names
-    // that can be useful for the nodes themselves can be used in constructor
-    val names = 1 to nodeBuilder.numberOfNodes map { _ => nodeBuilder.hostnameBuilder() }
-    val newNodes = names map { hostname =>
-      val node: T = nodeBuilder.nodeBuilder(names)
-      node.hostname = hostname
-      node
-    }
-    nodes = nodes ++ newNodes
+  private def generateInternal(nodeBuilder: ClusterNodeBuilder[T]): Seq[T] = {
+    val newNodes = nodeBuilder.build(nodes.map(_.hostname))
+    nodes ++= newNodes
     newNodes
   }
 
@@ -144,11 +137,26 @@ class MultipleClusterNodeBuilderStepTwo(val numberOfNodes: Int, val hostnamePref
 }
 
 trait ClusterNodeBuilder[T <: ClusterNode] {
+
   def numberOfNodes: Int = 1
 
   def hostnameBuilder: () => String
 
   def nodeBuilder: Seq[String] => T
+
+  def build(existingNodesNames: Seq[String] = Seq[String]()): Seq[T] = {
+    //generate names first, so things like connection strings or any combination of the generated names
+    // that can be useful for the nodes themselves can be used in constructor
+    val names = 1 to numberOfNodes map { _ => hostnameBuilder() }
+    val fullNames = existingNodesNames ++ names
+
+    val newNodes = names map { hostname =>
+      val node: T = nodeBuilder(fullNames)
+      node.hostname = hostname
+      node
+    }
+    newNodes
+  }
 }
 
 class MultipleClusterNodeBuilder[T <: ClusterNode](
@@ -158,5 +166,9 @@ class MultipleClusterNodeBuilder[T <: ClusterNode](
 
 class SingleClusterNodeBuilder[T <: ClusterNode](
                                                   override val hostnameBuilder: () => String,
-                                                  override val nodeBuilder: Seq[String] => T) extends ClusterNodeBuilder[T]
+                                                  override val nodeBuilder: Seq[String] => T) extends ClusterNodeBuilder[T] {
+  def buildSingle(existingNodesNames: Seq[String] = Seq[String]()): T = {
+    build(existingNodesNames).head
+  }
+}
 
