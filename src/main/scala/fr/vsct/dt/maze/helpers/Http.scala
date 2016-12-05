@@ -103,13 +103,17 @@ object Http {
     def header(name: String): Header = headersAsMap(name)
     def headers: Map[String, Header] = headersAsMap
 
+    override def toString: String = values.map { header =>
+      s"${header.name} -> ${header.value}"
+    }.mkString("[", ", ", "]")
+
   }
 
-  case class Header(name: String, values: Seq[String])
+  case class Header(name: String, value: String)
 
   object Headers {
     def header(h: http.Header): Header = {
-      Header(name = h.getName, values = h.getElements.map(_.getValue))
+      Header(name = h.getName, value = h.getValue)
     }
 
     def apply(response: CloseableHttpResponse): Headers = {
