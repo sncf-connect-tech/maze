@@ -163,10 +163,10 @@ object Docker extends LazyLogging {
       val lines = execResult.result.replaceAll("\r\n", "\n").split("\n")
 
       if (Option(execStatus.getExitCode).exists(_ != 0)) {
-        logger.debug(s"${commands.mkString(" ")}had error: ${lines.mkString("\n")}")
+        logger.debug(s"${commands.mkString(" ")} on $id had error: ${lines.mkString("\n")}")
         throw DockerProcessExecution(execStatus.getExitCode, lines.toList)
       }
-      logger.debug(s"result of ${commands.mkString(" ")}:\n${lines.mkString("\n")}")
+      logger.debug(s"result of ${commands.mkString(" ")} on $id:\n${lines.mkString("\n")}")
       lines
     }
     result
