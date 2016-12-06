@@ -16,17 +16,20 @@
 
 package fr.vsct.dt.maze.helpers
 
+import com.typesafe.scalalogging.StrictLogging
+import fr.vsct.dt.maze.core.Commands.expectThat
 import fr.vsct.dt.maze.core.Predef._
 import fr.vsct.dt.maze.core.{Predicate, Result}
 import org.apache.http._
 import org.apache.http.client.methods.{CloseableHttpResponse, HttpGet}
-import org.apache.http.entity.StringEntity
+import org.apache.http.entity.{ContentType, StringEntity}
 import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.message.{BasicHttpResponse, BasicStatusLine}
 import org.apache.http.protocol.HttpContext
 import org.scalatest.FlatSpec
 
-import scala.Predef._
+import scala.beans.BeanProperty
+
 
 class HttpExecutionTest extends FlatSpec {
 
@@ -35,14 +38,21 @@ class HttpExecutionTest extends FlatSpec {
     *
     * @param response the text response that will be returned when doing a mock call
     */
-  class MockHttpClient(val response: String) extends CloseableHttpClient {
+  class MockHttpClient(val response: String) extends CloseableHttpClient with StrictLogging {
     var init = false
 
     override def doExecute(target: HttpHost, request: HttpRequest, context: HttpContext): CloseableHttpResponse = {
       if (!init) throw new IllegalStateException("Client is not initialized")
-      println("Doing actual http call")
-      val r = new BasicCloseableHttpResponse(new BasicStatusLine(new ProtocolVersion("http", 1, 1), 200, "OK"))
-      r.setEntity(new StringEntity(response, "UTF-8"))
+      logger.info("Doing actual http call")
+      val r = if(request.getRequestLine.getUri == "http://some-url.com") {
+        val t = new BasicCloseableHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"))
+        t.setEntity(new StringEntity(response, "UTF-8"))
+        t
+      } else {
+        val t = new BasicCloseableHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_REQUEST, "KO"))
+        t.setEntity(new StringEntity("""{"status": "ko"}""", ContentType.APPLICATION_JSON))
+        t
+      }
       r
     }
 
@@ -64,10 +74,10 @@ class HttpExecutionTest extends FlatSpec {
 
     Http.client = new MockHttpClient("Youppy !")
 
-    val request = new HttpGet("http://some-url.com")
+    val requestOk = new HttpGet("http://some-url.com")
 
-    val check1: Predicate = Http.execute(request).status is 200
-    val check2: Predicate = Http.execute(request).response is "Youppy !"
+    val check1: Predicate = Http.execute(requestOk).status is 200
+    val check2: Predicate = Http.execute(requestOk).response is "Youppy !"
 
     val check3 = check1 || check2
 
@@ -79,7 +89,13 @@ class HttpExecutionTest extends FlatSpec {
     assert(check2.get() == Result.success)
     assert(check3.get() == Result.success)
     assert(check4.get() == Result.failure(s"Expected ${check3.label} to be false"))
+    expectThat(Http.get("http://some-error-url.com").status is 400)
+    expectThat(Http.get("http://some-url.com").isOk)
+    expectThat(!Http.get("http://some-error-url.com").isOk)
+    expectThat(Http.get("http://some-error-url.com").responseAs(classOf[Stupid]) is Stupid(status = "ko"))
 
   }
 
 }
+
+case class Stupid(@BeanProperty status: String)

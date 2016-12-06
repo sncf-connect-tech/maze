@@ -64,18 +64,6 @@ object Predef {
 
     def withSnapshot[B](fn: (Execution[A]) => B): B = fn(toExecutionWrappingExecuted)
 
-    def untilSuccess: Execution[A] = new Execution[A] {
-      override val label: String = self.label
-
-      override def execute(): Try[A] = {
-        val result: Try[A] = self.execute()
-        result match {
-          case Success(_) => result
-          case Failure(_) => this.execute()
-        }
-      }
-    }
-
     def is(other: Execution[A]): Predicate = self is other.execute().get
 
     def is(other: A): Predicate = self.toPredicate(s"${self.label} is '$other'?") {

@@ -24,7 +24,7 @@ import fr.vsct.dt.maze.core.Predef._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class CommandsTest extends FlatSpec with Matchers {
 
@@ -32,11 +32,13 @@ class CommandsTest extends FlatSpec with Matchers {
   val falsePredicate: Predicate = Predicate.`false`
   val errorPredicate: Predicate = new Predicate {
     override def get(): PredicateResult = Result(new Exception("simulated exception"), "")
+
     override val label: String = "predicate throwing exception"
   }
 
   val throwablePredicate: Predicate = new Predicate {
     override def get(): PredicateResult = Result(new Throwable("simulated exception"), "")
+
     override val label: String = "predicate throwing exception"
   }
 
@@ -47,7 +49,7 @@ class CommandsTest extends FlatSpec with Matchers {
       block = 0
     } orElse {
       block = 1
-    } onError{ e =>
+    } onError { e =>
       block = 2
     }
 
@@ -62,7 +64,7 @@ class CommandsTest extends FlatSpec with Matchers {
       block = 0
     } orElse {
       block = 1
-    } onError{ e =>
+    } onError { e =>
       block = 2
     }
 
@@ -76,7 +78,7 @@ class CommandsTest extends FlatSpec with Matchers {
       block = 0
     } orElse {
       block = 1
-    } onError{ e =>
+    } onError { e =>
       block = 2
     }
 
@@ -91,7 +93,7 @@ class CommandsTest extends FlatSpec with Matchers {
       block = 0
     } orElse {
       block = 1
-    } onError{ e =>
+    } onError { e =>
       block = 2
     }
 
@@ -104,13 +106,13 @@ class CommandsTest extends FlatSpec with Matchers {
 
     val counter = new AtomicInteger()
     val execution: Execution[String] = Execution {
-      if(counter.incrementAndGet() < 10) {
+      if (counter.incrementAndGet() < 10) {
         throw new IllegalArgumentException("fake")
       }
       "ok"
     }
 
-    waitUntil(execution is "ok") butNoLongerThan(10 seconds)
+    waitUntil(execution is "ok") butNoLongerThan (10 seconds)
 
     counter.get() should be(10)
 
@@ -120,14 +122,14 @@ class CommandsTest extends FlatSpec with Matchers {
 
     val counter = new AtomicInteger()
     val execution: Execution[String] = Execution {
-      if(counter.incrementAndGet() < 10) {
+      if (counter.incrementAndGet() < 10) {
         "ko"
       } else {
         "ok"
       }
     }
 
-    waitUntil(execution is "ok") butNoLongerThan(10 seconds)
+    waitUntil(execution is "ok") butNoLongerThan (10 seconds)
 
     counter.get() should be(10)
 
@@ -151,7 +153,7 @@ class CommandsTest extends FlatSpec with Matchers {
 
     val counter = new AtomicInteger()
     val execution: Execution[String] = Execution {
-      if(counter.incrementAndGet() < 10) {
+      if (counter.incrementAndGet() < 10) {
         "ok"
       } else {
         throw new IllegalArgumentException("fake")
@@ -159,7 +161,7 @@ class CommandsTest extends FlatSpec with Matchers {
 
     }
 
-    waitWhile(execution is "ok") butNoLongerThan(10 seconds)
+    waitWhile(execution is "ok") butNoLongerThan (10 seconds)
 
     counter.get() should be(10)
 
@@ -169,14 +171,14 @@ class CommandsTest extends FlatSpec with Matchers {
 
     val counter = new AtomicInteger()
     val execution: Execution[String] = Execution {
-      if(counter.incrementAndGet() < 10) {
+      if (counter.incrementAndGet() < 10) {
         "ok"
       } else {
         "ko"
       }
     }
 
-    waitWhile(execution is "ok") butNoLongerThan(10 seconds)
+    waitWhile(execution is "ok") butNoLongerThan (10 seconds)
 
     counter.get() should be(10)
 
@@ -200,7 +202,7 @@ class CommandsTest extends FlatSpec with Matchers {
 
     val counter = new AtomicInteger()
     val execution: Execution[String] = Execution {
-      if(counter.get() < 10) {
+      if (counter.get() < 10) {
         "ok"
       } else {
         throw new IllegalArgumentException("fake")
@@ -208,9 +210,9 @@ class CommandsTest extends FlatSpec with Matchers {
 
     }
 
-    repeat{
+    repeat {
       counter.incrementAndGet()
-    } `while` (execution is "ok") butNoLongerThan(10 seconds)
+    } `while` (execution is "ok") butNoLongerThan (10 seconds)
 
     counter.get() should be(10)
 
@@ -220,16 +222,16 @@ class CommandsTest extends FlatSpec with Matchers {
 
     val counter = new AtomicInteger()
     val execution: Execution[String] = Execution {
-      if(counter.get() < 10) {
+      if (counter.get() < 10) {
         "ok"
       } else {
         "ko"
       }
     }
 
-    repeat{
+    repeat {
       counter.incrementAndGet()
-    } `while` (execution is "ok") butNoLongerThan(10 seconds)
+    } `while` (execution is "ok") butNoLongerThan (10 seconds)
 
     counter.get() should be(10)
 
@@ -242,12 +244,60 @@ class CommandsTest extends FlatSpec with Matchers {
     }.labeled("just wait, for fun")
 
     val result = Try {
-      repeat{
+      repeat {
         print(execution)
-      } `while` (execution is "ok") butNoLongerThan(100 milliseconds)
+      } `while` (execution is "ok") butNoLongerThan (100 milliseconds)
     }
 
     result.isFailure should be(true)
+  }
+
+  "expectations" should "conserve original cause" in {
+
+    val exception = new IllegalArgumentException("fake")
+
+    val predicate = new Predicate {
+      override def get() = PredicateResult(Failure(exception), null)
+
+      override val label: String = "exception launcher"
+    }
+
+    val result = Try {
+      expectThat(predicate)
+    }
+
+    result match {
+      case Success(_) => fail("An exception should have been launched")
+      case Failure(e) => e.getCause should be(exception)
+    }
+
+  }
+
+  "expectations" should "be transparent on Success(true)" in {
+
+    val predicate = new Predicate {
+      override def get() = PredicateResult(Success(true), null)
+
+      override val label: String = "ok predicate"
+    }
+
+    expectThat(predicate)
+    // No exception sjoulkd be thrown
+  }
+
+  "expectations" should "throw exceptions on Success(false)" in {
+
+    val predicate = new Predicate {
+      override def get() = PredicateResult(Success(false), "cause")
+
+      override val label: String = "ko predicate"
+    }
+
+    Try(expectThat(predicate)) match {
+      case Failure(e) =>
+      case _ => fail("Expected an exception to be thrown")
+    }
+
   }
 
 }
