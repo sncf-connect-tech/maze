@@ -16,8 +16,14 @@
 
 package fr.vsct.dt.maze.core
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import org.scalatest.{FlatSpec, Matchers}
 import fr.vsct.dt.maze.core.Commands._
+import fr.vsct.dt.maze.core.Predef._
+
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class CommandsTest extends FlatSpec with Matchers {
 
@@ -69,6 +75,75 @@ class CommandsTest extends FlatSpec with Matchers {
     }
 
     block shouldBe 2
+
+  }
+
+
+  "a waitUntil block" should "continue while exceptions are thrown" in {
+
+    val counter = new AtomicInteger()
+    val execution: Execution[String] = Execution {
+      if(counter.incrementAndGet() < 10) {
+        throw new IllegalArgumentException("fake")
+      }
+      "ok"
+    }
+
+    waitUntil(execution is "ok") butNoLongerThan(10 seconds)
+
+    counter.get() should be(10)
+
+  }
+
+  "a waitUntil block" should "continue while predicate returns false" in {
+
+    val counter = new AtomicInteger()
+    val execution: Execution[String] = Execution {
+      if(counter.incrementAndGet() < 10) {
+        "ko"
+      } else {
+        "ok"
+      }
+    }
+
+    waitUntil(execution is "ok") butNoLongerThan(10 seconds)
+
+    counter.get() should be(10)
+
+  }
+
+  "a waitWhile block" should "leave right away if an exception is thrown" in {
+
+    val counter = new AtomicInteger()
+    val execution: Execution[String] = Execution {
+      if(counter.incrementAndGet() < 10) {
+        "ok"
+      } else {
+        throw new IllegalArgumentException("fake")
+      }
+
+    }
+
+    waitWhile(execution is "ok") butNoLongerThan(10 seconds)
+
+    counter.get() should be(10)
+
+  }
+
+  "a waitWhile block" should "continue while predicate returns true" in {
+
+    val counter = new AtomicInteger()
+    val execution: Execution[String] = Execution {
+      if(counter.incrementAndGet() < 10) {
+        "ok"
+      } else {
+        "ko"
+      }
+    }
+
+    waitWhile(execution is "ok") butNoLongerThan(10 seconds)
+
+    counter.get() should be(10)
 
   }
 

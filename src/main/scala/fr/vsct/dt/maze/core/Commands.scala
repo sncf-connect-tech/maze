@@ -103,7 +103,7 @@ object Commands extends StrictLogging {
   }
 
   def waitUntil(predicate: Predicate, butNoLongerThan: FiniteDuration = 5 minutes): Duration =
-    waitInternal(predicate, !_.result.getOrElse(true), butNoLongerThan)
+    waitInternal(predicate, !_.result.getOrElse(false), butNoLongerThan)
 
 
   /* waitWhile methods */
