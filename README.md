@@ -1,6 +1,7 @@
 
 # Maze, automate your technical tests
 
+[![Build Status](https://travis-ci.org/voyages-sncf-technologies/maze.svg?branch=master)](https://travis-ci.org/voyages-sncf-technologies/maze)
 
 Maze is a tool to automate technical tests. You might want them in some of the following cases :
 
