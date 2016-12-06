@@ -54,9 +54,9 @@ trait Execution[A] {
 }
 
 object Execution {
-  def apply[A](fn: () => A): Execution[A] = {
+  def apply[A](fn: => A): Execution[A] = {
     new Execution[A] {
-      override def execute(): Try[A] = Try(fn())
+      override def execute(): Try[A] = Try(fn)
 
       override val label: String = "Unlabeled user defined execution (use 'labeled' to give a meaning to this execution)"
     }

@@ -387,7 +387,7 @@ object Predef {
     }
   }
 
-  def emptyArray[A: ClassTag](): Execution[Array[A]] = Execution(() => Array[A]()).labeled("Empty list")
+  def emptyArray[A: ClassTag](): Execution[Array[A]] = Execution{Array[A]()}.labeled("Empty list")
 
   /* Implicit related to ClusterNode */
   implicit class IntToClusterNodeBuilder(val n: Int) extends AnyVal {

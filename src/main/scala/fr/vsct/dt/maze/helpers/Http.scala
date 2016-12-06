@@ -18,6 +18,7 @@ package fr.vsct.dt.maze.helpers
 
 import java.io.{BufferedReader, InputStreamReader}
 
+import com.typesafe.scalalogging.StrictLogging
 import fr.vsct.dt.maze.core.Execution
 import org.apache.http
 import org.apache.http.client.config.RequestConfig
@@ -30,7 +31,7 @@ import scala.language.implicitConversions
 import scala.util.Try
 
 
-object Http {
+object Http extends StrictLogging {
 
   val defaultConnectTimeout: Int = 5000
   val defaultSocketTimeout: Int = 5000
@@ -77,12 +78,14 @@ object Http {
   }
 
   def execute(request: HttpUriRequest): Execution[HttpResponse] = {
-    Execution[HttpResponse](() => {
+    Execution[HttpResponse] {
+      logger.debug(s"calling ${request.toString}")
       val response: CloseableHttpResponse = client.execute(request)
       val result = HttpResponse(response)
       Try(response.close())
+      logger.debug(s"Got response ${result.toString}")
       result
-    }).labeled(request.toString)
+    }.labeled(request.toString)
   }
 
   trait HttpResponse {

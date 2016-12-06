@@ -34,7 +34,7 @@ class XpathTest extends FlatSpec {
              |</test>
               """.stripMargin
 
-    val base: Execution[String] = Execution(() => xml)
+    val base: Execution[String] = Execution{xml}
 
     val xpath: Execution[XdmValue] = base.xpath("//test/value")
     xpath.length().execute() match {
@@ -68,7 +68,7 @@ class XpathTest extends FlatSpec {
                 |</test>
               """.stripMargin
 
-    val base: Execution[String] = Execution(() => xml)
+    val base: Execution[String] = Execution{xml}
 
     val xpath: Execution[XdmValue] = base.xpath("//some/path")
     xpath.length().execute() match {
@@ -84,7 +84,7 @@ class XpathTest extends FlatSpec {
 
     val xml = "some non-xml value"
 
-    val base: Execution[String] = Execution(() => xml)
+    val base: Execution[String] = Execution{xml}
 
     val xpath: Execution[XdmValue] = base.xpath("//test/value")
     xpath.execute() match {

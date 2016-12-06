@@ -85,11 +85,11 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
   }
 
   def findTheNodeWhich(fn: T => Predicate): Execution[T] = {
-    Execution(() => nodes.find(node => fn(node).execute())).map(_.get).labeled("node matching predicate")
+    Execution { nodes.find(node => fn(node).execute())}.map(_.get).labeled("node matching predicate")
   }
 
   def filterTheNodesWithCondition(fn: (T) => Predicate): Execution[Array[T]] = {
-    Execution(() => nodes.toArray.filter(node => fn(node).execute())).labeled("nodes filtered")
+    Execution{nodes.toArray.filter(node => fn(node).execute())}.labeled("nodes filtered")
   }
 
 }

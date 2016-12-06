@@ -25,7 +25,7 @@ class OptionTest extends FlatSpec {
 
   "a valued option" should "execute without errors" in {
 
-    val execution: Execution[Option[String]] = Execution(() => Some("it works"))
+    val execution: Execution[Option[String]] = Execution{Some("it works")}
 
     execution.get().execute() match {
       case Success("it works") => // ok
@@ -48,7 +48,7 @@ class OptionTest extends FlatSpec {
 
   "an empty option" should "execute without errors" in {
 
-    val execution: Execution[Option[String]] = Execution(() => None)
+    val execution: Execution[Option[String]] = Execution{None}
 
     execution.get().execute() match {
       case Success(_) => fail("empty option not seen as empty")
