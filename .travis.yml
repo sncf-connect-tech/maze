@@ -3,3 +3,5 @@ scala:
   - 2.12.0
 jdk:
   - oraclejdk8
+script: "sbt clean coverage test"
+after_success: "sbt coverageReport coveralls"
