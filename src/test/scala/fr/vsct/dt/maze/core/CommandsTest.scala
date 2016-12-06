@@ -24,6 +24,7 @@ import fr.vsct.dt.maze.core.Predef._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.util.Try
 
 class CommandsTest extends FlatSpec with Matchers {
 
@@ -31,6 +32,11 @@ class CommandsTest extends FlatSpec with Matchers {
   val falsePredicate: Predicate = Predicate.`false`
   val errorPredicate: Predicate = new Predicate {
     override def get(): PredicateResult = Result(new Exception("simulated exception"), "")
+    override val label: String = "predicate throwing exception"
+  }
+
+  val throwablePredicate: Predicate = new Predicate {
+    override def get(): PredicateResult = Result(new Throwable("simulated exception"), "")
     override val label: String = "predicate throwing exception"
   }
 
@@ -78,6 +84,21 @@ class CommandsTest extends FlatSpec with Matchers {
 
   }
 
+  "a if-else with a predicate throwing a throwable" should "execute the exception block" in {
+    var block: Int = -1
+
+    doIf(throwablePredicate) {
+      block = 0
+    } orElse {
+      block = 1
+    } onError{ e =>
+      block = 2
+    }
+
+    block shouldBe 2
+
+  }
+
 
   "a waitUntil block" should "continue while exceptions are thrown" in {
 
@@ -110,6 +131,20 @@ class CommandsTest extends FlatSpec with Matchers {
 
     counter.get() should be(10)
 
+  }
+
+  "a waitUntil block" should "throw an exception if deadline occurrs" in {
+
+    val execution: Execution[String] = Execution {
+      waitFor(1 seconds)
+      "ko"
+    }
+
+    val result = Try {
+      waitUntil(execution is "ok") butNoLongerThan (100 milliseconds)
+    }
+
+    result.isFailure should be(true)
   }
 
   "a waitWhile block" should "leave right away if an exception is thrown" in {
@@ -145,6 +180,74 @@ class CommandsTest extends FlatSpec with Matchers {
 
     counter.get() should be(10)
 
+  }
+
+  "a waitWhile block" should "throw an exception if deadline occurrs" in {
+
+    val execution: Execution[String] = Execution {
+      waitFor(1 seconds)
+      "ok"
+    }
+
+    val result = Try {
+      waitWhile(execution is "ok") butNoLongerThan (100 milliseconds)
+    }
+
+    result.isFailure should be(true)
+  }
+
+  "a repeatWhile block" should "leave right away if an exception is thrown" in {
+
+    val counter = new AtomicInteger()
+    val execution: Execution[String] = Execution {
+      if(counter.get() < 10) {
+        "ok"
+      } else {
+        throw new IllegalArgumentException("fake")
+      }
+
+    }
+
+    repeat{
+      counter.incrementAndGet()
+    } `while` (execution is "ok") butNoLongerThan(10 seconds)
+
+    counter.get() should be(10)
+
+  }
+
+  "a repeatWhile block" should "continue while predicate returns true" in {
+
+    val counter = new AtomicInteger()
+    val execution: Execution[String] = Execution {
+      if(counter.get() < 10) {
+        "ok"
+      } else {
+        "ko"
+      }
+    }
+
+    repeat{
+      counter.incrementAndGet()
+    } `while` (execution is "ok") butNoLongerThan(10 seconds)
+
+    counter.get() should be(10)
+
+  }
+
+  "a repeatWhile block" should "throw an exception if deadline occurrs" in {
+
+    val execution: Execution[String] = Execution {
+      "ok"
+    }.labeled("just wait, for fun")
+
+    val result = Try {
+      repeat{
+        print(execution)
+      } `while` (execution is "ok") butNoLongerThan(100 milliseconds)
+    }
+
+    result.isFailure should be(true)
   }
 
 }
