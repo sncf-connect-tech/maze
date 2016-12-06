@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/voyages-sncf-technologies/maze.svg?branch=master)](https://travis-ci.org/voyages-sncf-technologies/maze)
 [![License](http://img.shields.io/:license-Apache%202-red.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
 [<img src="https://img.shields.io/maven-central/v/fr.vsct.dt/maze_2.12.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22maze_2.12%22)
-
+[![Coverage Status](https://coveralls.io/repos/github/voyages-sncf-technologies/maze/badge.svg?branch=master)](https://coveralls.io/github/voyages-sncf-technologies/maze?branch=master)
 
 Maze is a tool to automate technical tests. You might want them in some of the following cases :
 
