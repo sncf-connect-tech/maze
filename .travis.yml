@@ -5,5 +5,5 @@ jdk:
   - oraclejdk8
 script: "sbt clean coverage test"
 after_success:
-  - "sbt coverageReport coveralls"
+  - "sbt coverageReport"
   - "bash <(curl -s https://codecov.io/bash)"
