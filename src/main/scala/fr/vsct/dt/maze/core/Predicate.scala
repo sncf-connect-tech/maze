@@ -90,7 +90,7 @@ object Result {
 
   def apply(e: Throwable, message: String): PredicateResult = PredicateResult(Failure(e), message)
 
-  val success: PredicateResult = Result(value = true, "")
+  val success: PredicateResult = Result(value = true)
 
   def failure(message: String): PredicateResult = Result(value = false, message)
 
