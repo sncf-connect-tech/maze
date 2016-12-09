@@ -20,6 +20,7 @@ import java.io.{BufferedReader, InputStreamReader}
 
 import com.typesafe.scalalogging.StrictLogging
 import fr.vsct.dt.maze.core.Execution
+import fr.vsct.dt.maze.topology.DockerClusterNode
 import org.apache.http
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.methods._
@@ -141,6 +142,24 @@ object Http extends StrictLogging {
         headers = Headers(response)
       )
     }
+
+  }
+
+  trait HttpEnabled { self: DockerClusterNode =>
+
+    def httpGet(path: String): Execution[HttpResponse] = {
+      Http.get(s"$baseUrl$path")
+    }
+
+    def httpPost(path: String, data: String, contentType: String): Execution[HttpResponse] = {
+      Http.post(s"$baseUrl$path", data, contentType)
+    }
+
+    def httpPut(path: String, data: String, contentType: String): Execution[HttpResponse] = {
+      Http.put(s"$baseUrl$path", data, contentType)
+    }
+
+    private def baseUrl = s"http://$externalIp:${mappedPort.get}"
 
   }
 
