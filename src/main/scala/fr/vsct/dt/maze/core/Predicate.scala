@@ -86,13 +86,13 @@ object Predicate {
 case class PredicateResult(result: Try[Boolean], message: String)
 
 object Result {
-  def apply(a: Boolean, message: String = ""): PredicateResult = PredicateResult(Try(a), message)
+  def apply(value: Boolean, message: String = ""): PredicateResult = PredicateResult(Success(value), message)
 
   def apply(e: Throwable, message: String): PredicateResult = PredicateResult(Failure(e), message)
 
-  val success: PredicateResult = PredicateResult(Try(true), "")
+  val success: PredicateResult = Result(value = true, "")
 
-  def failure(message: String): PredicateResult = PredicateResult(Try(false), message)
+  def failure(message: String): PredicateResult = Result(value = false, message)
 
   def exception(e: Throwable): PredicateResult = PredicateResult(Failure(e), s"Predicate failed: ${e.getMessage}")
 }
