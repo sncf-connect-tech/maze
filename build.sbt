@@ -35,4 +35,4 @@ scalastyleFailOnError := true
 
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
-coverageEnabled := true
+coverageEnabled := false
