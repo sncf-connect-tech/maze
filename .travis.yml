@@ -7,7 +7,6 @@ sudo: required
 services:
   - docker
 script:
-  - docker pull nginx
   - "sbt clean coverage test it:test"
 after_success:
   - "sbt coverageReport"
