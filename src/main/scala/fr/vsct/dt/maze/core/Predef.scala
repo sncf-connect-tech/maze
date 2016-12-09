@@ -108,6 +108,17 @@ object Predef {
       }
     }
 
+    def recoverWith(default: A): Execution[A] = new Execution[A] {
+      override def execute(): Try[A] = {
+        self.execute() match {
+          case Failure(_) => Success(default)
+          case success => success
+        }
+      }
+
+      override val label: String = self.label
+    }
+
   }
 
   implicit class OptionExecution[A](val self: Execution[Option[A]]) extends AnyVal {
