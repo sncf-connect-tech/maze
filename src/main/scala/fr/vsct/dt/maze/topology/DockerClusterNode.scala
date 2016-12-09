@@ -103,6 +103,6 @@ trait DockerClusterNode extends ClusterNode{
     * @param path    the path of the file to create
     * @param content the content of the file
     */
-  override def createFile(path: String, content: String): Unit = Docker.executionCreateFileOnContainer(containerId, path, content).execute()
+  override def createFile(path: String, content: String): Unit = Docker.executionCreateFileOnContainer(containerId, path, content)
 
 }

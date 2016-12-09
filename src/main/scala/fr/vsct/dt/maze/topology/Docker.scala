@@ -16,7 +16,7 @@
 
 package fr.vsct.dt.maze.topology
 
-import java.io.{Closeable, IOException}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, Closeable, IOException}
 import java.net.{Proxy, ProxySelector, SocketAddress, URI}
 import java.util
 
@@ -31,8 +31,9 @@ import com.github.dockerjava.jaxrs.JerseyDockerCmdExecFactory
 import com.typesafe.scalalogging.LazyLogging
 import fr.vsct.dt.maze.core.Execution
 import fr.vsct.dt.maze.helpers
+import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveOutputStream}
 
-import collection.JavaConverters._
+import scala.collection.JavaConverters._
 import scala.language.postfixOps
 import scala.util.Try
 
@@ -258,9 +259,30 @@ object Docker extends LazyLogging {
     client.removeNetworkCmd(name).exec()
   }
 
-  def executionCreateFileOnContainer(id: String, path: String, content: String): Execution[Array[String]] = {
-    val timestamp = System.nanoTime()
-    executionOnContainer(id, "/bin/sh", "-c", s"cat > '$path' <<-EOF-$timestamp\n$content\nEOF-$timestamp")
+  def executionCreateFileOnContainer(id: String, path: String, content: String): Unit = {
+
+    val index = path.lastIndexOf("/") + 1
+    val directory = path.substring(0, index)
+    val fileName = path.substring(index)
+
+    val contentBytes = content.getBytes("utf-8")
+
+    val outputStream = new ByteArrayOutputStream()
+
+    val write = new TarArchiveOutputStream(outputStream)
+    val entry = new TarArchiveEntry(fileName)
+    entry.setSize(contentBytes.length)
+    write.putArchiveEntry(entry)
+    write.write(contentBytes)
+    write.closeArchiveEntry()
+    write.close()
+
+    client.copyArchiveToContainerCmd(id)
+      .withTarInputStream(new ByteArrayInputStream(outputStream.toByteArray))
+      .withRemotePath(directory)
+      .exec()
+
+
   }
 
   private def sleep() = {
