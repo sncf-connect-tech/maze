@@ -17,7 +17,7 @@
 moduleName := "maze"
 organization := "fr.vsct.dt"
 
-scalaVersion := "2.12.0"
+scalaVersion := "2.12.1"
 
 libraryDependencies ++= Seq(
   "org.apache.httpcomponents" % "httpclient" % "4.5.2",
@@ -30,9 +30,13 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.1.7" % "optional"
 )
 
+lazy val root = (project in file(".")).
+  configs(IntegrationTest).
+  settings(Defaults.itSettings: _*)
+
 scalastyleConfig := file("project/scalastyle-config.xml")
 scalastyleFailOnError := true
 
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
-coverageEnabled := false
+coverageEnabled := true
