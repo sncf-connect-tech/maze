@@ -10,6 +10,7 @@ script:
   - "sbt clean coverage test it:test"
 after_success:
   - "sbt coverageReport"
+  - "sbt codacyCoverage"
   - "bash <(curl -s https://codecov.io/bash)"
 cache:
   directories:
