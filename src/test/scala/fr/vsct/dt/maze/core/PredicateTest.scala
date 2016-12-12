@@ -22,10 +22,10 @@ import scala.util.{Failure, Success}
 
 class PredicateTest extends FlatSpec with Matchers {
 
-  val exception = new IllegalStateException("fake")
-  val truePredicate = Predicate.`true`
-  val falsePredicate = Predicate.`false`
-  val errorPredicate = new Predicate {
+  val exception: Exception = new IllegalStateException("fake")
+  val truePredicate: Predicate = Predicate.`true`
+  val falsePredicate: Predicate = Predicate.`false`
+  val errorPredicate: Predicate = new Predicate {
     override val label: String = "exception thrower"
 
     override def get(): PredicateResult = Result.exception(exception)
