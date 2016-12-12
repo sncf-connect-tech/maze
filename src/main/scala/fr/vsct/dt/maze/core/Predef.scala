@@ -64,7 +64,20 @@ object Predef {
 
     def withSnapshot[B](fn: (Execution[A]) => B): B = fn(toExecutionWrappingExecuted)
 
-    def is(other: Execution[A]): Predicate = self is other.execute().get
+    def is(other: Execution[A]): Predicate = {
+      val exec: Execution[PredicateResult] =
+        for {
+          left <- self
+          right <- other
+        } yield if (left == right) {
+          Result.success
+        } else {
+          Result.failure(s"expected $left to be $right")
+        }
+
+      exec.toPredicate(s"${self.label} is ${other.label}?") { case r => r }
+    }
+
 
     def is(other: A): Predicate = self.toPredicate(s"${self.label} is '$other'?") {
       case a if a == other => Result.success
@@ -173,7 +186,7 @@ object Predef {
   implicit class MapExecution[KEY, A](val self: Execution[Map[KEY, A]]) extends AnyVal {
     def hasKey(key: KEY): Predicate = self.toPredicate(s"${self.label} contains $key?") {
       case m if m.contains(key) => Result.success
-      case m => Result.failure(s"Expected map to contain '$key', but it is: ${m.map{case (k, v) => s"$k -> $v"}.mkString("\n")}")
+      case m => Result.failure(s"Expected map to contain '$key', but it is: ${m.map { case (k, v) => s"$k -> $v" }.mkString("\n")}")
     }
 
     def get(key: KEY): Execution[A] = self.map(_ (key)).labeled(s"the key '$key' of ${self.label}")
@@ -182,7 +195,7 @@ object Predef {
 
     def isEmpty: Predicate = self.toPredicate(s"${self.label} is empty?") {
       case m if m.isEmpty => Result.success
-      case m => Result.failure(s"Expected map to be empty, but it is: ${m.map{case (k, v) => s"$k -> $v"}.mkString("\n")}")
+      case m => Result.failure(s"Expected map to be empty, but it is: ${m.map { case (k, v) => s"$k -> $v" }.mkString("\n")}")
     }
 
     def isNotEmpty: Predicate = self.toPredicate(s"${self.label} is not empty?") {
@@ -201,7 +214,7 @@ object Predef {
 
     def xpath(expression: String, namespaces: Map[String, String] = Map()): Execution[XdmValue] = self.map { content =>
       val compiler = xpathProcessor.newXPathCompiler()
-      namespaces.foreach {case (name, uri) => compiler.declareNamespace(name, uri)}
+      namespaces.foreach { case (name, uri) => compiler.declareNamespace(name, uri) }
       val selector = compiler.compile(expression).load()
       val node = xpathProcessor.newDocumentBuilder().build(new StreamSource(new StringReader(content)))
       selector.setContextItem(node)
@@ -226,25 +239,17 @@ object Predef {
   }
 
   implicit class IntExecution(val self: Execution[Int]) extends AnyVal {
-    def >=(other: Execution[Int]): Predicate = new Predicate {
-      override def get(): PredicateResult = {
-        val firstTry = self.execute()
-        val otherTry = other.execute()
-
-        val execution = for {
-          first <- firstTry
-          second <- otherTry
-        } yield first >= second
-
-        execution match {
-          case Success(true) => Result.success
-          case Success(false) => Result.failure(s"Expected ${firstTry.get} > ${otherTry.get}")
-          case Failure(e) => Result.exception(e)
-        }
-
+    def >=(other: Execution[Int]): Predicate = {
+      val execution = for {
+        first <- self
+        second <- other
+      } yield if (first >= second) {
+        Result.success
+      } else {
+        Result.failure(s"expected $first to be >= $second")
       }
 
-      override val label: String = s"${self.label} >= $other?"
+      execution.toPredicate(s"${self.label} >= ${other.label}?") { case r => r }
     }
 
 
@@ -284,46 +289,30 @@ object Predef {
   }
 
   implicit class LongExecution(val self: Execution[Long]) extends AnyVal {
-    def >=(other: Execution[Long]): Predicate = new Predicate {
-      override def get(): PredicateResult = {
-        val firstTry = self.execute()
-        val otherTry = other.execute()
-
-        val execution = for {
-          first <- firstTry
-          second <- otherTry
-        } yield first >= second
-
-        execution match {
-          case Success(true) => Result.success
-          case Success(false) => Result.failure(s"Expected ${firstTry.get} >= ${otherTry.get}")
-          case Failure(e) => Result.exception(e)
-        }
-
+    def >=(other: Execution[Long]): Predicate = {
+      val execution = for {
+        first <- self
+        second <- other
+      } yield if (first >= second) {
+        Result.success
+      } else {
+        Result.failure(s"expected $first to be >= $second")
       }
 
-      override val label: String = s"${self.label} > $other?"
+      execution.toPredicate(s"${self.label} >= ${other.label}?") { case r => r }
     }
 
-    def <(other: Execution[Long]): Predicate = new Predicate {
-      override def get(): PredicateResult = {
-        val firstTry = self.execute()
-        val otherTry = other.execute()
-
-        val execution = for {
-          first <- firstTry
-          second <- otherTry
-        } yield first < second
-
-        execution match {
-          case Success(true) => Result.success
-          case Success(false) => Result.failure(s"Expected ${firstTry.get} < ${otherTry.get}")
-          case Failure(e) => Result.exception(e)
-        }
-
+    def <(other: Execution[Long]): Predicate = {
+      val execution = for {
+        first <- self
+        second <- other
+      } yield if (first < second) {
+        Result.success
+      } else {
+        Result.failure(s"expected $first to be < $second")
       }
 
-      override val label: String = s"${self.label} > $other?"
+      execution.toPredicate(s"${self.label} < ${other.label}?") { case r => r }
     }
 
 
@@ -384,7 +373,9 @@ object Predef {
     }
   }
 
-  def emptyArray[A: ClassTag](): Execution[Array[A]] = Execution{Array[A]()}.labeled("Empty list")
+  def emptyArray[A: ClassTag](): Execution[Array[A]] = Execution {
+    Array[A]()
+  }.labeled("Empty list")
 
   /* Implicit related to ClusterNode */
   implicit class IntToClusterNodeBuilder(val n: Int) extends AnyVal {
@@ -393,7 +384,7 @@ object Predef {
     }
 
     def node[T <: ClusterNode]: SingleClusterNodeBuilderStepOne = {
-      if(n != 1) {
+      if (n != 1) {
         throw new IllegalArgumentException("the 'node' method can only be used if the number of nodes is 1, else use 'nodes'.")
       }
       new SingleClusterNodeBuilderStepOne
