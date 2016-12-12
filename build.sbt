@@ -1,5 +1,3 @@
-import com.codacy.CodacyCoveragePlugin.AutoImport
-
 /*
  * Copyright (C) 2016 VSCT
  *
@@ -40,5 +38,3 @@ scalastyleConfig := file("project/scalastyle-config.xml")
 scalastyleFailOnError := true
 
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
-
-AutoImport.codacyProjectToken := sys.env.get("CODACY_PROJECT_TOKEN")
