@@ -81,7 +81,7 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode with Stric
       .withPortBindings(
       (Docker.constructBinding(servicePort) ::
         Option(serviceContainer.getPortBindings)
-          .map(_.getBindings.asScala.toList.flatMap(b => b._2.map(bind => new PortBinding(bind, b._1))))
+          .map(_.getBindings.asScala.toList.flatMap { case (port, ips) => ips.map(bind => new PortBinding(bind, port)) })
           .getOrElse(List())).asJava
     )
       .withName(hostname)
@@ -96,7 +96,7 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode with Stric
     mappedServiceIp = getMappedIp(servicePort, info)
     containerIp = info.getNetworkSettings.getNetworks.get(DockerNetwork.networkName).getIpAddress
 
-    if(!Option(info.getState.getRunning).exists(_.booleanValue())) {
+    if (!Option(info.getState.getRunning).exists(_.booleanValue())) {
       logger.warn(s"Container $hostname is not running, state is ${info.getState.getStatus}")
     }
 
@@ -125,8 +125,8 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode with Stric
   def getMappedIp(internalPort: Int, info: InspectContainerResponse): String = {
     Option(info.getNetworkSettings.getPorts)
       .flatMap(
-        _.getBindings.asScala.find(p => Option(p._1.getPort).contains(internalPort))
-          .flatMap(m => Option(m._2))
+        _.getBindings.asScala.find { case (port, _) => Option(port.getPort).contains(internalPort) }
+          .flatMap { case (_, bindings) => Option(bindings) }
           .map(_.toList)
           .flatMap(_.headOption)
           .map(_.getHostIp)
@@ -145,9 +145,8 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode with Stric
   def getMappedPort(internalPort: Int, info: InspectContainerResponse): Option[Int] = {
     Option(info.getNetworkSettings.getPorts)
       .flatMap(
-        _.getBindings.asScala
-          .find(p => Option(p._1.getPort).contains(internalPort))
-          .flatMap(m => Option(m._2))
+        _.getBindings.asScala.find { case (port, _) => Option(port.getPort).contains(internalPort) }
+          .flatMap { case (_, bindings) => Option(bindings) }
           .map(_.toList)
           .flatMap(_.headOption)
       )

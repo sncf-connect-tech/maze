@@ -61,7 +61,7 @@ object Commands extends StrictLogging {
 
   private def stringRepresentation(a: Any): String = a match {
     case s: String => s
-    case map: Map[_, _] => map.toList.map(e => s"${e._1} -> ${e._2}").mkString("\n")
+    case map: Map[_, _] => map.toList.map{case (key, value) => s"$key -> $value"}.mkString("\n")
     case seq: Seq[_] => seq.mkString("[", ", ", "]")
     case array: Array[_] => array.mkString("[", ", ", "]")
     case other: Any => other.toString

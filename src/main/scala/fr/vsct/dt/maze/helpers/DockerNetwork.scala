@@ -78,22 +78,20 @@ object DockerNetwork extends StrictLogging {
       .getNetworkSettings.getNetworks.get(networkName).getIpAddress)).toMap
 
     // Reformat the data to get a map as such: Map[<container id>, Set[<invisible ip address>]]
-    val unreacheables: Map[String, Set[String]] =
+    val unreachables: Map[String, Set[String]] =
       (
         for {
           container <- everything
           partition <- partitions.map(_.nodes) if !partition.contains(container)
           otherContainer <- partition
         } yield (container.containerId, ips(otherContainer.containerId))
-        ).groupBy(_._1)
+        ).groupBy { case (containerId, _) => containerId }
         // groupBy will return a Map[String, Set[(String, String)]], transform it to a Map[String, Set[String]]
-        .map(tuple => (tuple._1, tuple._2.map(_._2)))
+        .map { case (containerId, unreachableIp) => (containerId, unreachableIp.map { case (_, value) => value }) }
 
-    unreacheables.foreach { entry =>
-      val container = entry._1
-      val ips = entry._2
+    unreachables.foreach { case (container, unreachableIps) =>
 
-      val commands = ips.toSeq.map { ip =>
+      val commands = unreachableIps.toSeq.map { ip =>
         s"iptables -A INPUT -d $ip -j DROP && iptables -A OUTPUT -d $ip -j DROP && iptables -A FORWARD -d $ip -j DROP"
       }.mkString(" && ")
 
@@ -129,14 +127,19 @@ object DockerNetwork extends StrictLogging {
       container <- partition.nodes
       otherContainer <- partition.nodes
     } yield (container, otherContainer.containerId)
-      ).groupBy(_._1)
-    // groupBy will return a Map[String, Set[(String, String)]], transform it to a Map[String, Set[String]]
-     .map(tuple => (tuple._1, tuple._2.map(tuple2 => Docker.containerInfo(tuple2._2).getNetworkSettings.getNetworks.get(networkName).getIpAddress)))
+      ).groupBy { case (container, _) => container }
+      // groupBy will return a Map[String, Set[(String, String)]], transform it to a Map[String, Set[String]]
+      .map {
+      case (containerId, ips) =>
+        (
+          containerId,
+          ips.map {
+            case (_, id) => Docker.containerInfo(id).getNetworkSettings.getNetworks.get(networkName).getIpAddress
+          }
+        )
+    }
 
-    nodesAndTheirBuddiesIP.foreach ( entry => {
-      val container = entry._1
-      val ips = entry._2
-
+    nodesAndTheirBuddiesIP.foreach { case (container, ips) =>
       val commands = ips.map { ip =>
         s"iptables -A INPUT -d $ip -j ACCEPT && iptables -A OUTPUT -d $ip -j ACCEPT && iptables -A FORWARD -d $ip -j ACCEPT"
       }.mkString(" && ")
@@ -144,7 +147,7 @@ object DockerNetwork extends StrictLogging {
       val command = Seq("/bin/bash", "-c", s"$acceptAllRules && $acceptGatewayRules && $commands && $dropAllRules && $saveIpTablesRules")
       logger.debug(s"Isolating node ${container.hostname} to only communicate with ${ips.mkString(", ")}")
       Docker.executionOnContainer(container.containerId, command: _*).execute()
-    })
+    }
 
     nodesWithIpTablesModified ++= partitions.flatMap(_.nodes)
   }
@@ -187,8 +190,8 @@ object DockerNetwork extends StrictLogging {
   private def setLagInternal(on: String, ip: String, lag: FiniteDuration): Unit = {
     Docker.executionOnContainer(on, "/bin/bash", "-c",
       s"""tc qdisc add dev eth0 root handle 1: prio
-          | && tc filter add dev eth0 protocol ip parent 1:0 prio 3 u32 match ip dst $ip flowid 1:3
-          | && tc qdisc add dev eth0 parent 1:3 handle 30: netem  delay ${lag.toMillis}ms""".stripMargin.replaceAll("\n", "")).execute()
+         | && tc filter add dev eth0 protocol ip parent 1:0 prio 3 u32 match ip dst $ip flowid 1:3
+         | && tc qdisc add dev eth0 parent 1:3 handle 30: netem  delay ${lag.toMillis}ms""".stripMargin.replaceAll("\n", "")).execute()
   }
 
   /**

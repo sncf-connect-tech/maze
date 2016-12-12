@@ -17,24 +17,13 @@
 package fr.vsct.dt.maze
 
 import com.github.dockerjava.api.command.CreateContainerCmd
+import fr.vsct.dt.maze.Helper.{NginxCluster, NginxClusterNode}
 import fr.vsct.dt.maze.core.Commands.expectThat
 import fr.vsct.dt.maze.core.Predef._
 import fr.vsct.dt.maze.helpers.Http.HttpEnabled
 import fr.vsct.dt.maze.topology.{Cluster, SingleContainerClusterNode}
 
 class SingleClusterTest extends TechnicalTest {
-  import Helper._
-
-  object Helper {
-
-    class NginxClusterNode extends SingleContainerClusterNode with HttpEnabled {
-      override def serviceContainer: CreateContainerCmd = "nginx"
-      override def servicePort: Int = 80
-    }
-
-    class NginxCluster extends Cluster[NginxClusterNode] {}
-
-  }
 
   var cluster: NginxCluster = _
 
@@ -59,4 +48,15 @@ class SingleClusterTest extends TechnicalTest {
   override protected def afterEach(): Unit = {
     cluster.stop()
   }
+}
+
+object Helper {
+
+  class NginxClusterNode extends SingleContainerClusterNode with HttpEnabled {
+    override def serviceContainer: CreateContainerCmd = "nginx"
+    override def servicePort: Int = 80
+  }
+
+  class NginxCluster extends Cluster[NginxClusterNode] {}
+
 }

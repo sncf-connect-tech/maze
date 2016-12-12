@@ -173,7 +173,7 @@ object Predef {
   implicit class MapExecution[KEY, A](val self: Execution[Map[KEY, A]]) extends AnyVal {
     def hasKey(key: KEY): Predicate = self.toPredicate(s"${self.label} contains $key?") {
       case m if m.contains(key) => Result.success
-      case m => Result.failure(s"Expected map to contain '$key', but it is: ${m.map(entry => s"${entry._1} -> ${entry._2}").mkString("\n")}")
+      case m => Result.failure(s"Expected map to contain '$key', but it is: ${m.map{case (k, v) => s"$k -> $v"}.mkString("\n")}")
     }
 
     def get(key: KEY): Execution[A] = self.map(_ (key)).labeled(s"the key '$key' of ${self.label}")
@@ -182,7 +182,7 @@ object Predef {
 
     def isEmpty: Predicate = self.toPredicate(s"${self.label} is empty?") {
       case m if m.isEmpty => Result.success
-      case m => Result.failure(s"Expected map to be empty, but it is: ${m.map(entry => s"${entry._1} -> ${entry._2}").mkString("\n")}")
+      case m => Result.failure(s"Expected map to be empty, but it is: ${m.map{case (k, v) => s"$k -> $v"}.mkString("\n")}")
     }
 
     def isNotEmpty: Predicate = self.toPredicate(s"${self.label} is not empty?") {
@@ -201,9 +201,7 @@ object Predef {
 
     def xpath(expression: String, namespaces: Map[String, String] = Map()): Execution[XdmValue] = self.map { content =>
       val compiler = xpathProcessor.newXPathCompiler()
-      namespaces.foreach { v =>
-        compiler.declareNamespace(v._1, v._2)
-      }
+      namespaces.foreach {case (name, uri) => compiler.declareNamespace(name, uri)}
       val selector = compiler.compile(expression).load()
       val node = xpathProcessor.newDocumentBuilder().build(new StreamSource(new StringReader(content)))
       selector.setContextItem(node)
