@@ -59,7 +59,7 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
   }
 
   def add(nodeBuilder: SingleClusterNodeBuilder[T]): T = {
-    generateInternal(nodeBuilder).head
+    generateInternal(nodeBuilder).headOption.getOrElse(throw new NoSuchNodeException("Trying to call add for 0 nodes"))
   }
 
   private def generateInternal(nodeBuilder: ClusterNodeBuilder[T]): Seq[T] = {
@@ -77,11 +77,15 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
   def internalConnectionString: String = nodes.map(n => s"${n.hostname}:${n.servicePort}").mkString(",")
 
   def getNode(hostname: String): T = {
-    nodes.find(_.hostname == hostname).get
+    nodes.find(_.hostname == hostname).getOrElse(
+      throw new NoSuchNodeException(s"node with name $hostname was not found within ${nodes.map(_.hostname).mkString(",")}")
+    )
   }
 
   def getNodeFromIp(ip: String): T = {
-    nodes.find(_.ip == ip).get
+    nodes.find(_.ip == ip).getOrElse(
+      throw new NoSuchNodeException(s"node with ip $ip was not found in cluster")
+    )
   }
 
   def findTheNodeWhich(fn: T => Predicate): Execution[T] = {
@@ -93,6 +97,8 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
   }
 
 }
+
+class NoSuchNodeException(message: String) extends RuntimeException(message)
 
 /* Not used yet, we will have to decide if it is useful */
 abstract class DockerCluster[T <: DockerClusterNode : ClassTag] extends Cluster[T] {
