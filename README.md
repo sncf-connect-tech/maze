@@ -2,7 +2,7 @@
 # Maze, automate your technical tests
 
 [![Build Status](https://travis-ci.org/voyages-sncf-technologies/maze.svg?branch=master)](https://travis-ci.org/voyages-sncf-technologies/maze)
-[![License](http://img.shields.io/:license-Apache%202-red.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
+[![License](http://img.shields.io/:license-Apache%202-yellow.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
 [![Maven Central](https://img.shields.io/maven-central/v/fr.vsct.dt/maze_2.12.svg)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22maze_2.12%22)
 [![Codecov](https://codecov.io/gh/voyages-sncf-technologies/maze/branch/master/graph/badge.svg)](https://codecov.io/gh/voyages-sncf-technologies/maze)
 [![Codacy grade](https://img.shields.io/codacy/grade/4605d1de435248d48f35be3f829adf90.svg)](https://www.codacy.com/app/flaroche/maze)
