@@ -67,6 +67,7 @@ abstract class Predicate {
     override val label: String = self.label + " OR " + other.label
   }
 
+  override def toString: String = label
 }
 
 object Predicate {

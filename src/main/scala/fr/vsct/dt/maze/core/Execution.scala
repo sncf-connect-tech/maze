@@ -51,6 +51,8 @@ trait Execution[A] {
     }
   }
 
+  override def toString: String = label
+
 }
 
 object Execution {
