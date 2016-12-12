@@ -1,0 +1,18 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.apache" level="WARN"/>
+    <logger name="com.github.dockerjava" level="WARN"/>
+    <logger name="fr.vsct.dt.maze.helpers.Http$" level="INFO"/>
+    <logger name="fr.vsct.dt.maze.topology.Docker$" level="INFO"/>
+
+    <root level="debug">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>
