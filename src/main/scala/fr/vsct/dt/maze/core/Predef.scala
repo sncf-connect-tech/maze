@@ -222,28 +222,13 @@ object Predef {
     def stringValue(): Execution[String] = self.map(_.getStringValue)
   }
 
-  implicit class IntExecution(val self: Execution[Int]) extends RichNumericExecution[Int] {
-    override def numeric: Numeric[Int] = Numeric.IntIsIntegral
-  }
+  implicit class IntExecution(self: Execution[Int]) extends RichNumericExecution[Int](self)
+  implicit class LongExecution(self: Execution[Long]) extends RichNumericExecution[Long](self)
+  implicit class FloatExecution(self: Execution[Float]) extends RichNumericExecution[Float](self)
+  implicit class DoubleExecution(self: Execution[Double]) extends RichNumericExecution[Double](self)
 
-  implicit class LongExecution(val self: Execution[Long]) extends RichNumericExecution[Long] {
-    override def numeric: Numeric[Long] = Numeric.LongIsIntegral
-  }
-
-  implicit class FloatExecution(val self: Execution[Float]) extends RichNumericExecution[Float] {
-    override def numeric: Numeric[Float] = Numeric.FloatAsIfIntegral
-  }
-
-  implicit class DoubleExecution(val self: Execution[Double]) extends RichNumericExecution[Double] {
-    override def numeric: Numeric[Double] = Numeric.DoubleAsIfIntegral
-  }
-
-  trait RichNumericExecution[A] extends RichOrderedExecution[A] {
-    private val implicitNumeric: Numeric[A] = numeric
+  abstract class RichNumericExecution[A](self: Execution[A]) (implicit implicitNumeric: Numeric[A]) extends RichOrderedExecution[A](self) {
     import implicitNumeric._
-
-    def numeric: Numeric[A]
-    override final def ordering: Ordering[A] = numeric
 
     def +(other: Execution[A]): Execution[A] = {
       for {
@@ -255,12 +240,8 @@ object Predef {
     def +(other: A): Execution[A] = self.map(_ + other).labeled(s"${self.label} + $other")
   }
 
-  trait RichOrderedExecution[A] {
-    private val implicitOrdering: Ordering[A] = ordering
+  abstract class RichOrderedExecution[A] (self: Execution[A]) (implicit implicitOrdering: Ordering[A]) {
     import implicitOrdering._
-
-    def ordering: Ordering[A]
-    def self: Execution[A]
 
     def >(other: A): Predicate = {
       self.toPredicate(s"${self.label} > $other?") {
