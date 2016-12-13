@@ -36,22 +36,6 @@ object Predef {
 
   private val xpathProcessor = new Processor(false)
 
-  implicit class HttpExecution(val self: Execution[HttpResponse]) extends AnyVal {
-    def status: Execution[Int] = self.map(_.responseCode).labeled(s"status code of ${self.label}")
-
-    def response: Execution[String] = self.map(_.entity).labeled(s"Response to ${self.label}")
-
-    def responseAs[A](c: Class[A]): Execution[A] = self.map { r =>
-      objectMapper.readValue(r.entity, c)
-    }.labeled(s"Response to ${self.label} as instance of ${c.getName}")
-
-    def isOk: Predicate = {
-      val statusOk = 200
-      val maxOk = 299
-      self.status.between(statusOk, maxOk).labeled(self.label + " is ok?")
-    }
-  }
-
   implicit class RichExecution[A](val self: Execution[A]) extends AnyVal {
     private def toExecutionWrappingExecuted: Execution[A] = {
       val returnValue = self.execute()
@@ -183,6 +167,8 @@ object Predef {
 
   }
 
+  def emptyArray[A: ClassTag](): Execution[Array[A]] = Execution {Array[A]()}.labeled("Empty array")
+
   implicit class MapExecution[KEY, A](val self: Execution[Map[KEY, A]]) extends AnyVal {
     def hasKey(key: KEY): Predicate = self.toPredicate(s"${self.label} contains $key?") {
       case m if m.contains(key) => Result.success
@@ -233,63 +219,77 @@ object Predef {
   }
 
   implicit class XdmItemExecution(val self: Execution[XdmItem]) extends AnyVal {
-
     def stringValue(): Execution[String] = self.map(_.getStringValue)
-
   }
 
-  implicit class IntExecution(val self: Execution[Int]) extends AnyVal {
-    def >=(other: Execution[Int]): Predicate = {
-      val execution = for {
-        first <- self
-        second <- other
-      } yield if (first >= second) {
-        Result.success
-      } else {
-        Result.failure(s"expected $first to be >= $second")
-      }
+  implicit class IntExecution(val self: Execution[Int]) extends RichNumericExecution[Int] {
+    override def numeric: Numeric[Int] = Numeric.IntIsIntegral
+  }
 
-      execution.toPredicate(s"${self.label} >= ${other.label}?") { case r => r }
-    }
+  implicit class LongExecution(val self: Execution[Long]) extends RichNumericExecution[Long] {
+    override def numeric: Numeric[Long] = Numeric.LongIsIntegral
+  }
 
+  implicit class FloatExecution(val self: Execution[Float]) extends RichNumericExecution[Float] {
+    override def numeric: Numeric[Float] = Numeric.FloatAsIfIntegral
+  }
 
-    def >(other: Int): Predicate = self.toPredicate(s"${self.label} > $other?") {
-      case a if a > other => Result.success
-      case a => Result.failure(s"Expected $a > $other")
-    }
+  implicit class DoubleExecution(val self: Execution[Double]) extends RichNumericExecution[Double] {
+    override def numeric: Numeric[Double] = Numeric.DoubleAsIfIntegral
+  }
 
-    def >=(other: Int): Predicate = self.toPredicate(s"${self.label} >= $other?") {
-      case a if a >= other => Result.success
-      case a => Result.failure(s"Expected $a >= $other")
-    }
+  trait RichNumericExecution[A] extends RichOrderedExecution[A] {
+    private val implicitNumeric: Numeric[A] = numeric
+    import implicitNumeric._
 
-    def <(other: Int): Predicate = self.toPredicate(s"${self.label} < $other?") {
-      case a if a < other => Result.success
-      case a => Result.failure(s"Expected $a < $other")
-    }
+    def numeric: Numeric[A]
+    override final def ordering: Ordering[A] = numeric
 
-    def <=(other: Int): Predicate = self.toPredicate(s"${self.label} <= $other?") {
-      case a if a > other => Result.success
-      case a => Result.failure(s"Expected $a <= $other")
-    }
-
-    def +(other: Execution[Int]): Execution[Int] = {
+    def +(other: Execution[A]): Execution[A] = {
       for {
         i <- self
         j <- other
       } yield i + j
     }.labeled(s"${self.label} + ${other.label}")
 
-    def +(increment: Int): Execution[Int] = self.map(_ + increment).labeled(s"${self.label} + $increment")
-
-    def between(a: Int, b: Int): Predicate = self.toPredicate(self.label + s" between $a and $b ?") {
-      case i if i >= a && i <= b => Result.success
-      case i => Result.failure(s"Expected result to be between $a and $b but is $i")
-    }
+    def +(other: A): Execution[A] = self.map(_ + other).labeled(s"${self.label} + $other")
   }
 
-  implicit class LongExecution(val self: Execution[Long]) extends AnyVal {
-    def >=(other: Execution[Long]): Predicate = {
+  trait RichOrderedExecution[A] {
+    private val implicitOrdering: Ordering[A] = ordering
+    import implicitOrdering._
+
+    def ordering: Ordering[A]
+    def self: Execution[A]
+
+    def >(other: A): Predicate = {
+      self.toPredicate(s"${self.label} > $other?") {
+        case a if a > other => Result.success
+        case a => Result.failure(s"Expected $a > $other")
+      }
+    }
+
+    def >(other: Execution[A]): Predicate = {
+      val execution = for {
+        first <- self
+        second <- other
+      } yield if (first > second) {
+        Result.success
+      } else {
+        Result.failure(s"expected $first to be > $second")
+      }
+
+      execution.toPredicate(s"${self.label} > ${other.label}?") { case r => r }
+    }
+
+    def >=(other: A): Predicate = {
+      self.toPredicate(s"${self.label} >= $other?") {
+        case a if a >= other => Result.success
+        case a => Result.failure(s"Expected $a >= $other")
+      }
+    }
+
+    def >=(other: Execution[A]): Predicate = {
       val execution = for {
         first <- self
         second <- other
@@ -302,7 +302,14 @@ object Predef {
       execution.toPredicate(s"${self.label} >= ${other.label}?") { case r => r }
     }
 
-    def <(other: Execution[Long]): Predicate = {
+    def <(other: A): Predicate = {
+      self.toPredicate(s"${self.label} < $other?") {
+        case a if a < other => Result.success
+        case a => Result.failure(s"Expected $a < $other")
+      }
+    }
+
+    def <(other: Execution[A]): Predicate = {
       val execution = for {
         first <- self
         second <- other
@@ -315,67 +322,32 @@ object Predef {
       execution.toPredicate(s"${self.label} < ${other.label}?") { case r => r }
     }
 
-
-    def >(other: Long): Predicate = self.toPredicate(s"${self.label} > $other?") {
-      case a if a > other => Result.success
-      case a => Result.failure(s"Expected $a > $other")
+    def <=(other: A): Predicate = {
+      self.toPredicate(s"${self.label} <= $other?") {
+        case a if a <= other => Result.success
+        case a => Result.failure(s"Expected $a <= $other")
+      }
     }
 
-    def >=(other: Long): Predicate = self.toPredicate(s"${self.label} >= $other?") {
-      case a if a >= other => Result.success
-      case a => Result.failure(s"Expected $a >= $other")
+    def <=(other: Execution[A]): Predicate = {
+      val execution = for {
+        first <- self
+        second <- other
+      } yield if (first <= second) {
+        Result.success
+      } else {
+        Result.failure(s"expected $first to be <= $second")
+      }
+
+      execution.toPredicate(s"${self.label} <= ${other.label}?") { case r => r }
     }
 
-    def <(other: Long): Predicate = self.toPredicate(s"${self.label} < $other?") {
-      case a if a < other => Result.success
-      case a => Result.failure(s"Expected $a < $other")
-    }
-
-    def <=(other: Int): Predicate = self.toPredicate(s"${self.label} <= $other?") {
-      case a if a > other => Result.success
-      case a => Result.failure(s"Expected $a <= $other")
-    }
-
-    def +(other: Execution[Long]): Execution[Long] = {
-      for {
-        i <- self
-        j <- other
-      } yield i + j
-    }.labeled(s"${self.label} + ${other.label}")
-
-    def +(increment: Long): Execution[Long] = self.map(_ + increment).labeled(s"${self.label} + $increment")
-
-    def between(a: Long, b: Long): Predicate = self.toPredicate(self.label + s" between $a and $b ?") {
+    def between(a: A, b: A): Predicate = self.toPredicate(self.label + s" between $a and $b ?") {
       case i if i >= a && i <= b => Result.success
       case i => Result.failure(s"Expected result to be between $a and $b but is $i")
     }
   }
 
-  implicit class OrderedExecution[A](val self: Execution[Ordered[A]]) extends AnyVal {
-    def >(other: A): Predicate = self.toPredicate(s"${self.label} > $other?") {
-      case a if a > other => Result.success
-      case a => Result.failure(s"Expected $a > $other")
-    }
-
-    def >=(other: A): Predicate = self.toPredicate(s"${self.label} >= $other?") {
-      case a if a >= other => Result.success
-      case a => Result.failure(s"Expected $a >= $other")
-    }
-
-    def <(other: A): Predicate = self.toPredicate(s"${self.label} < $other?") {
-      case a if a < other => Result.success
-      case a => Result.failure(s"Expected $a < $other")
-    }
-
-    def <=(other: A): Predicate = self.toPredicate(s"${self.label} <= $other?") {
-      case a if a <= other => Result.success
-      case a => Result.failure(s"Expected $a <= $other")
-    }
-  }
-
-  def emptyArray[A: ClassTag](): Execution[Array[A]] = Execution {
-    Array[A]()
-  }.labeled("Empty list")
 
   /* Implicit related to ClusterNode */
   implicit class IntToClusterNodeBuilder(val n: Int) extends AnyVal {
@@ -388,6 +360,22 @@ object Predef {
         throw new IllegalArgumentException("the 'node' method can only be used if the number of nodes is 1, else use 'nodes'.")
       }
       new SingleClusterNodeBuilderStepOne
+    }
+  }
+
+  implicit class HttpExecution(val self: Execution[HttpResponse]) extends AnyVal {
+    def status: Execution[Int] = self.map(_.responseCode).labeled(s"status code of ${self.label}")
+
+    def response: Execution[String] = self.map(_.entity).labeled(s"Response to ${self.label}")
+
+    def responseAs[A](c: Class[A]): Execution[A] = self.map { r =>
+      objectMapper.readValue(r.entity, c)
+    }.labeled(s"Response to ${self.label} as instance of ${c.getName}")
+
+    def isOk: Predicate = {
+      val statusOk = 200
+      val maxOk = 299
+      self.status.between(statusOk, maxOk).labeled(self.label + " is ok?")
     }
   }
 
