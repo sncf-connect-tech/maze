@@ -185,7 +185,7 @@ class SingleClusterNodeBuilder[T <: ClusterNode](
                                                   override val hostnameBuilder: () => String,
                                                   override val nodeBuilder: Seq[String] => T) extends ClusterNodeBuilder[T] {
   def buildSingle(existingNodesNames: Seq[String] = Seq[String]()): T = {
-    build(existingNodesNames).head
+    build(existingNodesNames).headOption.getOrElse(throw new IllegalStateException("Cannot build a single node if the number of nodes is 0."))
   }
 }
 

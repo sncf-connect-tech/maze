@@ -159,8 +159,9 @@ object Http extends StrictLogging {
       Http.put(s"$baseUrl$path", data, contentType)
     }
 
-    private def baseUrl = s"http://$externalIp:${mappedPort.get}"
-
+    private def baseUrl = s"http://$externalIp:${mappedPort.getOrElse(
+      throw new IllegalStateException("No port found on container, check it is correctly started and that the mapped port is correctly declared.")
+    )}"
   }
 
 }
