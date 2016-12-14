@@ -77,7 +77,7 @@ object Commands extends StrictLogging {
   def exec[A](execution: Execution[A]): A = execution.execute().get
 
   /**
-    * returns the result of sevral Executions, throwing exceptions if any is raised during the process
+    * returns the result of several Executions, throwing exceptions if any is raised during the process
     * The Execution are evaluated sequentially.
     *
     * @param executions the sequence of Execution to evaluate
