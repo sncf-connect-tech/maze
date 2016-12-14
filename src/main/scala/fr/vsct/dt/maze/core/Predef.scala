@@ -36,6 +36,20 @@ object Predef {
 
   private val xpathProcessor = new Processor(false)
 
+  private def createPredicate[A](base: Execution[A], other: Execution[A], compareFunction: (A, A) => Boolean, errorFunction: (A, A) => String): Predicate = {
+    val exec: Execution[PredicateResult] =
+      for {
+        left <- base
+        right <- other
+      } yield if (compareFunction(left, right)) {
+        Result.success
+      } else {
+        Result.failure(errorFunction(left, right))
+      }
+
+    exec.toPredicate("define.me") { case r => r }
+  }
+
   implicit class RichExecution[A](val self: Execution[A]) extends AnyVal {
     private def toExecutionWrappingExecuted: Execution[A] = {
       val returnValue = self.execute()
@@ -49,17 +63,10 @@ object Predef {
     def withSnapshot[B](fn: (Execution[A]) => B): B = fn(toExecutionWrappingExecuted)
 
     def is(other: Execution[A]): Predicate = {
-      val exec: Execution[PredicateResult] =
-        for {
-          left <- self
-          right <- other
-        } yield if (left == right) {
-          Result.success
-        } else {
-          Result.failure(s"expected $left to be $right")
-        }
-
-      exec.toPredicate(s"${self.label} is ${other.label}?") { case r => r }
+      createPredicate(self, other,
+        (left: A, right: A) => left == right,
+        (left: A, right: A) => s"expected $left to be $right"
+      ).labeled(s"${self.label} is ${other.label}?")
     }
 
 
@@ -167,7 +174,9 @@ object Predef {
 
   }
 
-  def emptyArray[A: ClassTag](): Execution[Array[A]] = Execution {Array[A]()}.labeled("Empty array")
+  def emptyArray[A: ClassTag](): Execution[Array[A]] = Execution {
+    Array[A]()
+  }.labeled("Empty array")
 
   implicit class MapExecution[KEY, A](val self: Execution[Map[KEY, A]]) extends AnyVal {
     def hasKey(key: KEY): Predicate = self.toPredicate(s"${self.label} contains $key?") {
@@ -223,11 +232,15 @@ object Predef {
   }
 
   implicit class IntExecution(self: Execution[Int]) extends RichNumericExecution[Int](self)
+
   implicit class LongExecution(self: Execution[Long]) extends RichNumericExecution[Long](self)
+
   implicit class FloatExecution(self: Execution[Float]) extends RichNumericExecution[Float](self)
+
   implicit class DoubleExecution(self: Execution[Double]) extends RichNumericExecution[Double](self)
 
-  abstract class RichNumericExecution[A](self: Execution[A]) (implicit implicitNumeric: Numeric[A]) extends RichOrderedExecution[A](self) {
+  abstract class RichNumericExecution[A](self: Execution[A])(implicit implicitNumeric: Numeric[A]) extends RichOrderedExecution[A](self) {
+
     import implicitNumeric._
 
     def +(other: Execution[A]): Execution[A] = {
@@ -240,7 +253,8 @@ object Predef {
     def +(other: A): Execution[A] = self.map(_ + other).labeled(s"${self.label} + $other")
   }
 
-  abstract class RichOrderedExecution[A] (self: Execution[A]) (implicit implicitOrdering: Ordering[A]) {
+  abstract class RichOrderedExecution[A](self: Execution[A])(implicit implicitOrdering: Ordering[A]) {
+
     import implicitOrdering._
 
     def >(other: A): Predicate = {
@@ -251,16 +265,10 @@ object Predef {
     }
 
     def >(other: Execution[A]): Predicate = {
-      val execution = for {
-        first <- self
-        second <- other
-      } yield if (first > second) {
-        Result.success
-      } else {
-        Result.failure(s"expected $first to be > $second")
-      }
-
-      execution.toPredicate(s"${self.label} > ${other.label}?") { case r => r }
+      createPredicate(self, other,
+        (left: A, right: A) => left > right,
+        (left: A, right: A) => s"expected $left to be > $right"
+      ).labeled(s"${self.label} > ${other.label}?")
     }
 
     def >=(other: A): Predicate = {
@@ -271,16 +279,10 @@ object Predef {
     }
 
     def >=(other: Execution[A]): Predicate = {
-      val execution = for {
-        first <- self
-        second <- other
-      } yield if (first >= second) {
-        Result.success
-      } else {
-        Result.failure(s"expected $first to be >= $second")
-      }
-
-      execution.toPredicate(s"${self.label} >= ${other.label}?") { case r => r }
+      createPredicate(self, other,
+        (left: A, right: A) => left >= right,
+        (left: A, right: A) => s"expected $left to be >= $right"
+      ).labeled(s"${self.label} >= ${other.label}?")
     }
 
     def <(other: A): Predicate = {
@@ -291,16 +293,10 @@ object Predef {
     }
 
     def <(other: Execution[A]): Predicate = {
-      val execution = for {
-        first <- self
-        second <- other
-      } yield if (first < second) {
-        Result.success
-      } else {
-        Result.failure(s"expected $first to be < $second")
-      }
-
-      execution.toPredicate(s"${self.label} < ${other.label}?") { case r => r }
+      createPredicate(self, other,
+        (left: A, right: A) => left < right,
+        (left: A, right: A) => s"expected $left to be < $right"
+      ).labeled(s"${self.label} < ${other.label}?")
     }
 
     def <=(other: A): Predicate = {
@@ -311,16 +307,10 @@ object Predef {
     }
 
     def <=(other: Execution[A]): Predicate = {
-      val execution = for {
-        first <- self
-        second <- other
-      } yield if (first <= second) {
-        Result.success
-      } else {
-        Result.failure(s"expected $first to be <= $second")
-      }
-
-      execution.toPredicate(s"${self.label} <= ${other.label}?") { case r => r }
+      createPredicate(self, other,
+        (left: A, right: A) => left <= right,
+        (left: A, right: A) => s"expected $left to be <= $right"
+      ).labeled(s"${self.label} <= ${other.label}?")
     }
 
     def between(a: A, b: A): Predicate = self.toPredicate(self.label + s" between $a and $b ?") {
