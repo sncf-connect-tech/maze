@@ -29,14 +29,16 @@ import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.{DefaultDockerClientConfig, DockerClientBuilder, DockerClientConfig}
 import com.github.dockerjava.jaxrs.JerseyDockerCmdExecFactory
 import com.typesafe.scalalogging.LazyLogging
-import fr.vsct.dt.maze.core.Execution
+import fr.vsct.dt.maze.core.Commands.waitWhile
+import fr.vsct.dt.maze.core.Predef._
+import fr.vsct.dt.maze.core.{Commands, Execution, Result}
 import fr.vsct.dt.maze.helpers
 import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveOutputStream}
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
-import scala.util.Try
-
+import scala.concurrent.duration._
 object Docker extends LazyLogging {
 
   private val defaultProxySelector = ProxySelector.getDefault
@@ -109,7 +111,7 @@ object Docker extends LazyLogging {
     val images = client.listImagesCmd().withImageNameFilter(image).exec()
     if (!images.asScala.exists(_.getRepoTags.contains(image))) {
       logger.info(s"Pulling image $image...")
-      client.pullImageCmd(image).exec(new WaitForCallbackResponse[PullResponseItem]()).get()
+      client.pullImageCmd(image).exec(new WaitForCallbackResponse[PullResponseItem]()).await()
     }
 
     client.createContainerCmd(image)
@@ -138,40 +140,37 @@ object Docker extends LazyLogging {
 
   def forceRemoveContainer(id: String): Unit = client.removeContainerCmd(id).withForce(true).withRemoveVolumes(true).exec()
 
-  def executionOnContainer(id: String, commands: String*): Execution[Array[String]] = new Execution[Array[String]] {
-    override def execute(): Try[Array[String]] = executionOnContainerInternal(id, commands: _*)
+  def executionOnContainer(id: String, commands: String*): Execution[Array[String]] = Execution {
+    val cmdId = client.execCreateCmd(id)
+      .withAttachStderr(true)
+      .withAttachStdout(true)
+      .withCmd(commands: _*)
+      .exec().getId
 
-    override val label: String = s"Execution of ${commands.mkString(" ")} on container $id"
-  }
+    val execResult = client.execStartCmd(cmdId).exec(new LogAppender)
 
-  private def executionOnContainerInternal(id: String, commands: String*): Try[Array[String]] = {
-    val result = Try {
-      val cmdId = client.execCreateCmd(id)
-        .withAttachStderr(true)
-        .withAttachStdout(true)
-        .withCmd(commands: _*)
-        .exec().getId
-
-      val execResult = client.execStartCmd(cmdId).exec(new LogAppender)
-
-      var execStatus = client.inspectExecCmd(cmdId).exec()
-      // Wait until execution finishes
-      while (execStatus.isRunning) {
-        sleep()
-        execStatus = client.inspectExecCmd(cmdId).exec()
+    // Wait until execution finishes
+    waitWhile(
+      Execution {
+        client.inspectExecCmd(cmdId).exec()
+      }.toPredicate("command is running?") {
+        case a if a.isRunning => Result.success
+        case _ => Result.failure("command stopped running")
       }
+    )
 
-      val lines = execResult.result.replaceAll("\r\n", "\n").split("\n")
+    val lines = execResult.result.replaceAll("\r\n", "\n").split("\n")
 
-      if (Option(execStatus.getExitCode).exists(_ != 0)) {
-        logger.debug(s"${commands.mkString(" ")} on $id had error: ${lines.mkString("\n")}")
-        throw DockerProcessExecution(execStatus.getExitCode, lines.toList)
-      }
-      logger.debug(s"result of ${commands.mkString(" ")} on $id:\n${lines.mkString("\n")}")
-      lines
+    val exitCode = client.inspectExecCmd(cmdId).exec().getExitCode
+
+    if (Option(exitCode).exists(_ != 0)) {
+      logger.debug(s"${commands.mkString(" ")} on $id had error: ${lines.mkString("\n")}")
+      throw DockerProcessExecution(exitCode, lines.toList)
     }
-    result
-  }
+    logger.debug(s"result of ${commands.mkString(" ")} on $id:\n${lines.mkString("\n")}")
+    lines
+  }.labeled(s"Execution of ${commands.mkString(" ")} on container $id")
+
 
   def getIp(containerId: String): String =
     containerInfo(containerId).getNetworkSettings.getNetworks.get(helpers.DockerNetwork.networkName).getIpAddress
@@ -199,9 +198,6 @@ object Docker extends LazyLogging {
     override def close(): Unit = {}
 
     def result: String = {
-      while (!finished) {
-        sleep()
-      }
       builder.result()
     }
   }
@@ -229,17 +225,20 @@ object Docker extends LazyLogging {
 
     override def close(): Unit = {}
 
-    def get(): List[T] = {
-      while (!done) {
-        sleep()
+    @tailrec
+    final def await(counter: Int = 0): Int = {
+      if(done) {
+        counter
+      } else {
+        Commands.waitFor(100 milliseconds)
+        await(counter + 1)
       }
-      value
     }
   }
 
   def restartContainer(id: String): Unit = {
     client.stopContainerCmd(id).exec()
-    client.waitContainerCmd(id).exec(new WaitForCallbackResponse[WaitResponse]())
+    client.waitContainerCmd(id).exec(new WaitForCallbackResponse[WaitResponse]()).await()
     client.startContainerCmd(id).exec()
   }
 
@@ -283,11 +282,6 @@ object Docker extends LazyLogging {
       .exec()
 
 
-  }
-
-  private def sleep() = {
-    val pauseTime: Long = 10
-    Thread.sleep(pauseTime)
   }
 
 }
