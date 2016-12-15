@@ -18,10 +18,13 @@ package fr.vsct.dt.maze
 
 import com.github.dockerjava.api.command.CreateContainerCmd
 import fr.vsct.dt.maze.Helper.{NginxCluster, NginxClusterNode}
-import fr.vsct.dt.maze.core.Commands.expectThat
+import fr.vsct.dt.maze.core.Commands.{expectThat, waitUntil}
 import fr.vsct.dt.maze.core.Predef._
 import fr.vsct.dt.maze.helpers.Http.HttpEnabled
 import fr.vsct.dt.maze.topology.{Cluster, SingleContainerClusterNode}
+
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class SingleClusterTest extends TechnicalTest {
 
@@ -43,6 +46,8 @@ class SingleClusterTest extends TechnicalTest {
     cluster = new NginxCluster
     cluster.add(2.nodes named "nginx" constructedLike new NginxClusterNode)
     cluster.start()
+
+    cluster.nodes.foreach{node => waitUntil(node.httpGet("/").status is 200) butNoLongerThan(10 seconds)}
   }
 
   override protected def afterEach(): Unit = {
