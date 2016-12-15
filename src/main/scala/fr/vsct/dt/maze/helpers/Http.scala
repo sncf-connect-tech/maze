@@ -20,8 +20,9 @@ import java.io.{BufferedReader, InputStreamReader}
 
 import com.typesafe.scalalogging.StrictLogging
 import fr.vsct.dt.maze.core.Execution
-import fr.vsct.dt.maze.topology.DockerClusterNode
+import fr.vsct.dt.maze.topology.{Docker, MultipleContainerClusterNode}
 import org.apache.http
+import org.apache.http.HttpEntity
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.methods._
 import org.apache.http.entity.{ContentType, StringEntity}
@@ -91,7 +92,9 @@ object Http extends StrictLogging {
 
   trait HttpResponse {
     def entity: String
+
     def headers: Headers
+
     def responseCode: Int
   }
 
@@ -102,9 +105,10 @@ object Http extends StrictLogging {
 
   class Headers(values: Array[Header]) {
 
-    private val headersAsMap: Map[String, Header] = values.map {h => (h.name, h)}.toMap
+    private val headersAsMap: Map[String, Header] = values.map { h => (h.name, h) }.toMap
 
     def header(name: String): Header = headersAsMap(name)
+
     def headers: Map[String, Header] = headersAsMap
 
     override def toString: String = values.map { header =>
@@ -145,23 +149,110 @@ object Http extends StrictLogging {
 
   }
 
-  trait HttpEnabled { self: DockerClusterNode =>
+  trait HttpEnabled {
+    self: MultipleContainerClusterNode =>
 
-    def httpGet(path: String): Execution[HttpResponse] = {
-      Http.get(s"$baseUrl$path")
+    def httpGet(path: String, headers: Map[String, String] = Map(), internalPort: Int = servicePort): Execution[HttpResponse] = {
+      http(uri = path, method = GET, headers = headers, internalPort = internalPort)
     }
 
-    def httpPost(path: String, data: String, contentType: String): Execution[HttpResponse] = {
-      Http.post(s"$baseUrl$path", data, contentType)
+    def httpDelete(path: String, headers: Map[String, String] = Map(), internalPort: Int = servicePort): Execution[HttpResponse] = {
+      http(uri = path, method = DELETE, headers = headers, internalPort = internalPort)
     }
 
-    def httpPut(path: String, data: String, contentType: String): Execution[HttpResponse] = {
-      Http.put(s"$baseUrl$path", data, contentType)
+    def httpPost(
+                 path: String,
+                 data: String, contentType: String,
+                 headers: Map[String, String] = Map(),
+                 internalPort: Int = servicePort): Execution[HttpResponse] = {
+
+      http(
+        uri = path,
+        method = POST,
+        headers = headers,
+        body = Some(new StringEntity(data, contentType)),
+        internalPort = internalPort)
     }
 
-    private def baseUrl = s"http://$externalIp:${mappedPort.getOrElse(
-      throw new IllegalStateException("No port found on container, check it is correctly started and that the mapped port is correctly declared.")
-    )}"
+    def httpPut(
+                path: String,
+                data: String,
+                contentType: String,
+                headers: Map[String, String] = Map(),
+                internalPort: Int = servicePort): Execution[HttpResponse] = {
+
+      http(uri = path,
+        method = PUT,
+        headers = headers,
+        body = Some(new StringEntity(data, contentType)),
+        internalPort = internalPort)
+    }
+
+    def http(
+              internalPort: Int = servicePort,
+              uri: String, method: HttpMethod,
+              headers: Map[String, String] = Map[String, String](),
+              body: Option[HttpEntity] = None): Execution[HttpResponse] = {
+
+      val fullUrl = s"${baseUrl(internalPort)}$uri"
+      val r = method match {
+        case GET =>
+          new HttpGet(fullUrl)
+        case POST =>
+          val request = new HttpPost(fullUrl)
+          body.foreach(b => request.setEntity(b))
+          request
+        case PUT =>
+          val request = new HttpPut(fullUrl)
+          body.foreach(b => request.setEntity(b))
+          request
+        case DELETE => new HttpDelete(fullUrl)
+        case HEAD => new HttpHead(fullUrl)
+        case PATCH =>
+          val request = new HttpPatch(fullUrl)
+          body.foreach(b => request.setEntity(b))
+          request
+        case OPTIONS => new HttpOptions(fullUrl)
+      }
+      Http.execute(r)
+    }
+
+    private def baseUrl(port: Int): String = {
+      if (port == servicePort) {
+        s"http://$externalIp:${
+          self.mappedPort.getOrElse(
+            throw new IllegalStateException("No port found on container, check it is correctly started and that the mapped port is correctly declared.")
+          )
+        }"
+      } else {
+        val info = Docker.containerInfo(self.containerId)
+        s"http://${self.getMappedIp(port, info)}:${
+          self.getMappedPort(port, info).getOrElse(
+            throw new IllegalStateException(s"Port $port doesn't seem to be mapped on docker host, please check your configuration.")
+          )
+        }"
+      }
+    }
+  }
+
+  sealed trait HttpMethod
+
+  case object GET extends HttpMethod
+
+  case object POST extends HttpMethod
+
+  case object PUT extends HttpMethod
+
+  case object DELETE extends HttpMethod
+
+  case object HEAD extends HttpMethod
+
+  case object PATCH extends HttpMethod
+
+  case object OPTIONS extends HttpMethod
+
+  trait HttpBody {
+
   }
 
 }
