@@ -251,8 +251,4 @@ object Http extends StrictLogging {
 
   case object OPTIONS extends HttpMethod
 
-  trait HttpBody {
-
-  }
-
 }
