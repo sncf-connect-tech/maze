@@ -241,7 +241,7 @@ object Predef {
 
   abstract class RichNumericExecution[A](self: Execution[A])(implicit implicitNumeric: Numeric[A]) extends RichOrderedExecution[A](self) {
 
-    import implicitNumeric._
+    import implicitNumeric.mkNumericOps
 
     def +(other: Execution[A]): Execution[A] = {
       for {
@@ -255,7 +255,7 @@ object Predef {
 
   abstract class RichOrderedExecution[A](self: Execution[A])(implicit implicitOrdering: Ordering[A]) {
 
-    import implicitOrdering._
+    import implicitOrdering.mkOrderingOps
 
     def >(other: A): Predicate = {
       self.toPredicate(s"${self.label} > $other?") {
