@@ -22,9 +22,9 @@ object HostNames {
   private var hostnameIndexes: Map[String, Int] = Map()
 
   def getNextIndex(hostName: String): Int = {
-    val index = hostnameIndexes.getOrElse(hostName, -1)
-    hostnameIndexes += (hostName -> (index + 1))
-    index + 1
+    val index = hostnameIndexes.getOrElse(hostName, -1) + 1
+    hostnameIndexes += (hostName -> index)
+    index
   }
 
 }
