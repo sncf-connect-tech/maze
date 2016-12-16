@@ -142,9 +142,15 @@ object Predef {
 
   implicit class ArrayExecution[A: ClassTag](val self: Execution[Array[A]]) {
 
-    def contains(condition: (A) => Boolean, functionText: String): Predicate =
-      self.map(_.contains(condition)).toPredicate(s"${self.label} contains $functionText ?") {
-        case a if a => Result.success
+    def exists(condition: (A) => Boolean, functionText: String): Predicate =
+      self.toPredicate(s"${self.label} contains $functionText ?") {
+        case a if a.exists(condition) => Result.success
+        case _ => Result.failure(s"Expected array to contain '$functionText'")
+      }
+
+    def contains(elem: A, functionText: String): Predicate =
+      self.toPredicate(s"${self.label} contains $functionText ?") {
+        case a if a.contains(elem) => Result.success
         case _ => Result.failure(s"Expected array to contain '$functionText'")
       }
 
