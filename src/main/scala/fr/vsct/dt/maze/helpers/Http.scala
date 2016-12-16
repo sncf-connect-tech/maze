@@ -170,7 +170,7 @@ object Http extends StrictLogging {
         uri = path,
         method = POST,
         headers = headers,
-        body = Some(new StringEntity(data, contentType)),
+        body = Some(new StringEntity(data, ContentType.create(contentType, "utf-8"))),
         internalPort = internalPort)
     }
 
@@ -184,7 +184,7 @@ object Http extends StrictLogging {
       http(uri = path,
         method = PUT,
         headers = headers,
-        body = Some(new StringEntity(data, contentType)),
+        body = Some(new StringEntity(data, ContentType.create(contentType, "utf-8"))),
         internalPort = internalPort)
     }
 
