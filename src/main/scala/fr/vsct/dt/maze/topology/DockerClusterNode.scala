@@ -98,6 +98,12 @@ trait DockerClusterNode extends ClusterNode{
   def externalIp: String
 
   /**
+    * Return the complete logs for this node
+    *
+    * @return a way to retrieve the logs, as an array
+    */
+  def logs: Execution[Array[String]] = Docker.logs(containerId)
+  /**
     * Create a file with a given content on the container
     *
     * @param path    the path of the file to create

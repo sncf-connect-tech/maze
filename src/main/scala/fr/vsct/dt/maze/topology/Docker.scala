@@ -39,6 +39,7 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
 import scala.concurrent.duration._
+
 object Docker extends LazyLogging {
 
   private val defaultProxySelector = ProxySelector.getDefault
@@ -200,6 +201,16 @@ object Docker extends LazyLogging {
     def result: String = {
       builder.result()
     }
+
+    @tailrec
+    final def await(): LogAppender = {
+      if (finished) {
+        this
+      } else {
+        Commands.waitFor(100 milliseconds)
+        await()
+      }
+    }
   }
 
   def containerInfo(id: String): InspectContainerResponse = {
@@ -227,7 +238,7 @@ object Docker extends LazyLogging {
 
     @tailrec
     final def await(counter: Int = 0): Int = {
-      if(done) {
+      if (done) {
         counter
       } else {
         Commands.waitFor(100 milliseconds)
@@ -283,6 +294,19 @@ object Docker extends LazyLogging {
 
 
   }
+
+  def logs(id: String): Execution[Array[String]] = Execution {
+
+    val logs = client.logContainerCmd(id).withTailAll()
+      .withStdOut(true)
+      .withStdErr(true)
+      .withFollowStream(false)
+      .exec(new LogAppender).await()
+      .result.split("\n")
+
+    logger.info(s"Got logs for container $id: ${logs.mkString("\n")}")
+    logs
+  }.labeled(s"logs of container $id")
 
 }
 
