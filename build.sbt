@@ -38,3 +38,5 @@ scalastyleConfig := file("project/scalastyle-config.xml")
 scalastyleFailOnError := true
 
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
+
+parallelExecution in IntegrationTest := false
