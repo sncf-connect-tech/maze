@@ -29,9 +29,7 @@ import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.{DefaultDockerClientConfig, DockerClientBuilder, DockerClientConfig}
 import com.github.dockerjava.jaxrs.JerseyDockerCmdExecFactory
 import com.typesafe.scalalogging.LazyLogging
-import fr.vsct.dt.maze.core.Commands.waitWhile
-import fr.vsct.dt.maze.core.Predef._
-import fr.vsct.dt.maze.core.{Commands, Execution, Result}
+import fr.vsct.dt.maze.core.{Commands, Execution}
 import fr.vsct.dt.maze.helpers
 import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveOutputStream}
 
@@ -149,26 +147,16 @@ object Docker extends LazyLogging {
       .exec().getId
 
     val execResult = client.execStartCmd(cmdId).exec(new LogAppender)
-
-    // Wait until execution finishes
-    waitWhile(
-      Execution {
-        client.inspectExecCmd(cmdId).exec()
-      }.toPredicate("command is running?") {
-        case a if a.isRunning => Result.success
-        case _ => Result.failure("command stopped running")
-      }
-    )
-
-    val lines = execResult.result.replaceAll("\r\n", "\n").split("\n")
+    execResult.await()
 
     val exitCode = client.inspectExecCmd(cmdId).exec().getExitCode
+    val lines = execResult.result.replaceAll("\r\n", "\n").split("\n")
 
     if (Option(exitCode).exists(_ != 0)) {
       logger.debug(s"${commands.mkString(" ")} on $id had error: ${lines.mkString("\n")}")
       throw DockerProcessExecution(exitCode, lines.toList)
     }
-    logger.debug(s"result of ${commands.mkString(" ")} on $id:\n${lines.mkString("\n")}")
+    logger.debug(s"result of ${commands.mkString(" ")} on $id: [${lines.mkString("\n")}]")
     lines
   }.labeled(s"Execution of ${commands.mkString(" ")} on container $id")
 
