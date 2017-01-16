@@ -38,7 +38,7 @@ All the tests will then consist in communications with your applications / tools
 ```scala
 scalaVersion := "2.12.1"
 
-libraryDependencies += "fr.vsct.dt" %% "maze" % "1.0.9"
+libraryDependencies += "fr.vsct.dt" %% "maze" % "1.0.10"
 ```
 
 ### Using maven
@@ -48,7 +48,7 @@ libraryDependencies += "fr.vsct.dt" %% "maze" % "1.0.9"
 <dependency>
   <groupId>fr.vsct.dt</groupId>
   <artifactId>maze_2.12</artifactId>
-  <version>1.0.9</version>
+  <version>1.0.10</version>
 </dependency>
 ...
 <plugin>
