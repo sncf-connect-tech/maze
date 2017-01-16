@@ -18,7 +18,10 @@ package fr.vsct.dt.maze
 
 import com.github.dockerjava.api.command.CreateContainerCmd
 import fr.vsct.dt.maze.core.Commands
+import fr.vsct.dt.maze.topology.Docker.DockerProcessExecution
 import fr.vsct.dt.maze.topology.SingleContainerClusterNode
+
+import scala.util.{Failure, Try}
 
 
 class ExecuteOnContainerTest extends TechnicalTest {
@@ -41,6 +44,15 @@ class ExecuteOnContainerTest extends TechnicalTest {
     val duration = System.currentTimeMillis() - start
     duration should be >= 10000L
     duration should be <= 11000L
+  }
+
+  "execution on container" should  "handle return codes != 0 as errors" in {
+    val result: Try[Array[String]] = container.shellExecution("/bin/sh", "-c", "sleep sometime").execute()
+
+    result match {
+      case Failure(DockerProcessExecution(_, _)) => // it's what we expect
+      case other => fail(s"Execution failure returned $other instead of Failure(DockerProcessExecution(_, _))")
+    }
   }
 
   override protected def beforeEach(): Unit = {
