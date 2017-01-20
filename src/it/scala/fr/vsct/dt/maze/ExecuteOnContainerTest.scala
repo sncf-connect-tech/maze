@@ -16,10 +16,19 @@
 
 package fr.vsct.dt.maze
 
-import com.github.dockerjava.api.command.CreateContainerCmd
+import java.io.{File, InputStream}
+import java.lang.Boolean
+import java.util.{Timer, TimerTask}
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
+
+import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.async.ResultCallback
+import com.github.dockerjava.api.command._
+import com.github.dockerjava.api.model.{AuthConfig, Frame, Identifier}
+import com.google.common.util.concurrent.AbstractScheduledService.Scheduler
 import fr.vsct.dt.maze.core.Commands
 import fr.vsct.dt.maze.topology.Docker.DockerProcessExecution
-import fr.vsct.dt.maze.topology.SingleContainerClusterNode
+import fr.vsct.dt.maze.topology.{Docker, SingleContainerClusterNode}
 
 import scala.util.{Failure, Try}
 
@@ -33,7 +42,16 @@ class ExecuteOnContainerTest extends TechnicalTest {
 
   var container: DummyContainer = _
 
+  "execution on container" should "not be inspected until it actually finished" in {
+    Docker.client = new DockerClientWithDelayOnStartCmd(Docker.client, 2000)
 
+    val start = System.currentTimeMillis()
+    val result: Array[String] = Commands.exec(container.shellExecution("/bin/sh", "-c", "echo done!"))
+    val duration = System.currentTimeMillis() - start
+
+    result shouldBe Array("done!")
+    duration should be >= 2000L
+  }
 
   "execution on container" should  "wait until execution is over" in {
 
@@ -64,3 +82,7 @@ class ExecuteOnContainerTest extends TechnicalTest {
     container.clear()
   }
 }
+
+
+
+
