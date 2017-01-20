@@ -29,11 +29,12 @@ import com.google.common.util.concurrent.AbstractScheduledService.Scheduler
 import fr.vsct.dt.maze.core.Commands
 import fr.vsct.dt.maze.topology.Docker.DockerProcessExecution
 import fr.vsct.dt.maze.topology.{Docker, SingleContainerClusterNode}
+import org.scalatest.BeforeAndAfter
 
 import scala.util.{Failure, Try}
 
 
-class ExecuteOnContainerTest extends TechnicalTest {
+class ExecuteOnContainerTest extends TechnicalTest with BeforeAndAfter {
 
   class DummyContainer extends SingleContainerClusterNode {
     override def serviceContainer: CreateContainerCmd = "busybox".withEntrypoint("sleep", "2000s")
@@ -41,6 +42,16 @@ class ExecuteOnContainerTest extends TechnicalTest {
   }
 
   var container: DummyContainer = _
+  var preservedDockerClient: DockerClient = _
+
+  before {
+    //save docker client in case it is modified for the needs of a test
+    preservedDockerClient = Docker.client
+  }
+
+  after {
+    Docker.client = preservedDockerClient
+  }
 
   "execution on container" should "not be inspected until it actually finished" in {
     Docker.client = new DockerClientWithDelayOnStartCmd(Docker.client, 2000)
