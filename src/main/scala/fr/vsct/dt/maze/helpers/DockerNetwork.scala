@@ -17,11 +17,13 @@
 package fr.vsct.dt.maze.helpers
 
 import java.net.InetAddress
+import java.util.concurrent.atomic.AtomicInteger
 
 import com.typesafe.scalalogging.StrictLogging
 import fr.vsct.dt.maze.topology.{ClusterNodeGroup, Docker, DockerClusterNode, NodeGroup}
 
 import collection.JavaConverters._
+import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
@@ -29,9 +31,35 @@ object DockerNetwork extends StrictLogging {
 
   val networkName = "technical-tests"
   val networkRange = "10.20.0"
-  val subnet = s"$networkRange.0/16"
+  val subnet = s"$networkRange.0/24"
 
   var nodesWithIpTablesModified: Seq[DockerClusterNode] = Seq()
+
+  private val counter = new AtomicInteger()
+  private var reservedIps: Set[String] = Set[String]()
+
+  def takeIp(): String = {
+    @tailrec
+    def nextIp(): String = {
+      val lastIpPart: Int = counter.getAndIncrement() % 252 + 2
+      val ip: String = s"$networkRange.$lastIpPart"
+      if(!reservedIps.contains(ip)){
+        ip
+      } else {
+        nextIp()
+      }
+    }
+    if(reservedIps.size == 253) {
+      throw new IllegalStateException("Cannot register more than 253 containers on the network.")
+    }
+    val ip: String = nextIp()
+    reservedIps += ip
+    ip
+  }
+
+  def freeIp(ip: String): Unit = {
+    reservedIps = reservedIps.filter(_ != ip)
+  }
 
   def createDefaultNetwork(): Unit = {
     if (exists()) {

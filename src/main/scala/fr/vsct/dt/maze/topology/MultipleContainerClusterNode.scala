@@ -57,6 +57,7 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode with Stric
   override def clear(): Unit = {
     Docker.forceRemoveContainer(containerId)
     dataIds.foreach(Docker.forceRemoveContainer)
+    DockerNetwork.freeIp(internalIp)
   }
 
   private def hasBeenStartedOnce(): Boolean = Option(containerId).isDefined
@@ -75,8 +76,9 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode with Stric
     val names = dataContainersWithName.map(c => new VolumesFrom(c.getName))
 
 
+    containerIp = DockerNetwork.takeIp()
     dataIds = dataContainersWithName.map(Docker.createAndStartContainer)
-    var command: CreateContainerCmd = serviceContainer.withHostName(hostname)
+    var command: CreateContainerCmd = serviceContainer.withHostName(hostname).withIpv4Address(containerIp)
       // Keep user defined bindings
       .withPortBindings(
       (Docker.constructBinding(servicePort) ::
@@ -89,12 +91,12 @@ abstract class MultipleContainerClusterNode extends DockerClusterNode with Stric
     if (names.nonEmpty) {
       command = command.withVolumesFrom(names: _*)
     }
+
     id = Docker.createAndStartContainer(command)
 
     val info = Docker.containerInfo(containerId)
     mappedServicePort = getMappedPort(servicePort, info)
     mappedServiceIp = getMappedIp(servicePort, info)
-    containerIp = info.getNetworkSettings.getNetworks.get(DockerNetwork.networkName).getIpAddress
 
     if (!Option(info.getState.getRunning).exists(_.booleanValue())) {
       logger.warn(s"Container $hostname is not running, state is ${info.getState.getStatus}")
