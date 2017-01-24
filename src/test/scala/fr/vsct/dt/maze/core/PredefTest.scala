@@ -39,7 +39,9 @@ class PredefTest extends FlatSpec with Matchers {
     } is "ok"
 
     predicate.get().result should be (Success(true))
-    predicate.get().result should be (Success(false))
+    val predicateResult = predicate.get()
+    predicateResult.result should be (Success(false))
+    predicateResult.message should be("Expected 'ko' to be 'ok'")
     predicate.get().result should be (Failure(exception))
 
   }
@@ -54,6 +56,11 @@ class PredefTest extends FlatSpec with Matchers {
 
     (0 to 20).foreach{_ => Commands.expectThat(predicate)}
 
+    val koExecution = Execution{"ko"}
+
+    val predicateResult = (execution is koExecution).get()
+    predicateResult.message should be("Expected 'ko' to be 'ok'")
+    predicateResult.result should be (Success(false))
   }
 
   "the isNot function" should "test equality as needed" in {
@@ -120,6 +127,18 @@ class PredefTest extends FlatSpec with Matchers {
         Commands.expectThat(snap is 1)
       }
     }
+  }
+
+  "recovery functions" should "provide default values" in {
+    val execution: Execution[String] = Execution{
+      throw new IllegalStateException("simulated")
+    }
+    Commands.exec(execution.recoverWith("ok")) should be("ok")
+  }
+
+  "recovery functions" should "return normal value if no exception occurs" in {
+    val execution: Execution[String] = Execution{"original"}
+    Commands.exec(execution.recoverWith("ok")) should be("original")
   }
 
 }

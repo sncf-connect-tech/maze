@@ -65,7 +65,7 @@ object Predef {
     def is(other: Execution[A]): Predicate = {
       createPredicate(self, other,
         (left: A, right: A) => left == right,
-        (left: A, right: A) => s"expected $left to be $right"
+        (left: A, right: A) => s"Expected '$right' to be '$left'"
       ).labeled(s"${self.label} is ${other.label}?")
     }
 
@@ -273,7 +273,7 @@ object Predef {
     def >(other: Execution[A]): Predicate = {
       createPredicate(self, other,
         (left: A, right: A) => left > right,
-        (left: A, right: A) => s"expected $left to be > $right"
+        (left: A, right: A) => s"Expected $left to be > $right"
       ).labeled(s"${self.label} > ${other.label}?")
     }
 
@@ -301,7 +301,7 @@ object Predef {
     def <(other: Execution[A]): Predicate = {
       createPredicate(self, other,
         (left: A, right: A) => left < right,
-        (left: A, right: A) => s"expected $left to be < $right"
+        (left: A, right: A) => s"Expected $left to be < $right"
       ).labeled(s"${self.label} < ${other.label}?")
     }
 
@@ -315,7 +315,7 @@ object Predef {
     def <=(other: Execution[A]): Predicate = {
       createPredicate(self, other,
         (left: A, right: A) => left <= right,
-        (left: A, right: A) => s"expected $left to be <= $right"
+        (left: A, right: A) => s"Expected $left to be <= $right"
       ).labeled(s"${self.label} <= ${other.label}?")
     }
 
