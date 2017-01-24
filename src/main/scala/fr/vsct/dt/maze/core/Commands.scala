@@ -28,7 +28,7 @@ import scala.util.{Failure, Success}
   */
 object Commands extends StrictLogging {
 
-  class UnexpectedResultException(message: String, cause: Throwable = null) extends RuntimeException(message, cause)
+  class UnexpectedResultException(message: String, cause: Option[Throwable] = None) extends RuntimeException(message, cause.orNull)
 
   class TimeoutException(message: String) extends RuntimeException(message)
 
@@ -42,7 +42,7 @@ object Commands extends StrictLogging {
     predicate.get() match {
       case PredicateResult(Success(true), _) =>
       case PredicateResult(Success(false), s) => throw new UnexpectedResultException(s"Wrong expectation: ${predicate.label}: $s")
-      case PredicateResult(Failure(e), s) => throw new UnexpectedResultException(s"Wrong expectation: ${predicate.label}: $s", e)
+      case PredicateResult(Failure(e), s) => throw new UnexpectedResultException(s"Wrong expectation: ${predicate.label}: $s", Some(e))
     }
   }
 
