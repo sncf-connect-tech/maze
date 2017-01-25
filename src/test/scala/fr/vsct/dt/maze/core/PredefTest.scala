@@ -203,7 +203,7 @@ class PredefTest extends FlatSpec with Matchers {
     defg.forall(_.length == 1).execute() should be(true)
   }
 
-  "map executions" should "" in {
+  "map executions" should "be implemented properly" in {
 
     val mapExecution = Execution[Map[String, String]] {Map("key" -> "value")}
     val emptyMapExecution = Execution[Map[String, String]] {Map()}
@@ -226,4 +226,11 @@ class PredefTest extends FlatSpec with Matchers {
 
   }
 
+  "string executions" should "work as expected" in {
+
+    Execution{"string"}.length.execute().get should be("string".length)
+    Execution{"string"}.contains("tri").execute() should be(true)
+    Execution{"string"}.contains("test").execute() should be(false)
+
+  }
 }
