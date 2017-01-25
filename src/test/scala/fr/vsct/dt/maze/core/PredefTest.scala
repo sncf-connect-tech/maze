@@ -233,4 +233,48 @@ class PredefTest extends FlatSpec with Matchers {
     Execution{"string"}.contains("test").execute() should be(false)
 
   }
+
+  "Int executions" should "compare each other normally" in {
+
+    val first: Execution[Int] = Execution(5)
+    val other: Execution[Int] = Execution(2)
+
+    (first > 2).execute() should be(true)
+    (first > 10).execute() should be(false)
+    (first > 5).execute() should be(false)
+    (first > other).execute() should be(true)
+    (other > first).execute() should be(false)
+    (first > first).execute() should be(false)
+
+    (first >= 2).execute() should be(true)
+    (first >= 10).execute() should be(false)
+    (first >= 5).execute() should be(true)
+    (first >= other).execute() should be(true)
+    (other >= first).execute() should be(false)
+    (first >= first).execute() should be(true)
+
+
+    (first < 2).execute() should be(false)
+    (first < 10).execute() should be(true)
+    (first < 5).execute() should be(false)
+    (first < other).execute() should be(false)
+    (other < first).execute() should be(true)
+    (first < first).execute() should be(false)
+
+    (first <= 2).execute() should be(false)
+    (first <= 10).execute() should be(true)
+    (first <= 5).execute() should be(true)
+    (first <= other).execute() should be(false)
+    (other <= first).execute() should be(true)
+    (first <= first).execute() should be(true)
+  }
+
+  "Int executions" should "use operators normally" in {
+    val first: Execution[Int] = Execution(5)
+    val other: Execution[Int] = Execution(2)
+
+    (first + other).execute().get should be(7)
+    (other + first).execute().get should be(7)
+    (first + 2).execute().get should be(7)
+  }
 }
