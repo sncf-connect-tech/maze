@@ -141,4 +141,67 @@ class PredefTest extends FlatSpec with Matchers {
     Commands.exec(execution.recoverWith("ok")) should be("original")
   }
 
+  "array executions" should "implement exists correctly" in {
+
+    val empty: Execution[Array[String]] = emptyArray()
+    val abcd = Execution{Array("a", "b", "c", "d", "")}
+    val defg = Execution{Array("d", "e", "f", "g")}
+
+    empty.exists(_.length == 0, "some empty string").execute() should be(false)
+    abcd.exists(_.length == 0, "some empty string").execute() should be(true)
+    defg.exists(_.length == 0, "some empty string").execute() should be(false)
+  }
+
+  "array executions" should "implement cotains correctly" in {
+
+    val empty: Execution[Array[String]] = emptyArray()
+    val abcd = Execution{Array("a", "b", "c", "d", "")}
+    val defg = Execution{Array("d", "e", "f", "g")}
+
+    empty.contains("c", "c").execute() should be(false)
+    abcd.contains("c", "c").execute() should be(true)
+    defg.contains("c", "c").execute() should be(false)
+  }
+
+  "array executions" should "implement length correctly" in {
+
+    val empty: Execution[Array[String]] = emptyArray()
+    val abcd = Execution{Array("a", "b", "c", "d", "")}
+    val defg = Execution{Array("d", "e", "f", "g")}
+
+    empty.length.execute().get should be(0)
+    abcd.length.execute().get should be(5)
+    defg.length.execute().get should be(4)
+  }
+
+  "array executions" should "implement isEmpty correctly" in {
+
+    val empty: Execution[Array[String]] = emptyArray()
+    val abcd = Execution{Array("a", "b", "c", "d", "")}
+
+    empty.isEmpty.execute() should be(true)
+    abcd.isEmpty.execute() should be(false)
+  }
+
+  "array executions" should "implement first correctly" in {
+
+    val empty: Execution[Array[String]] = emptyArray()
+    val abcd = Execution{Array("a", "b", "c", "d", "")}
+
+    empty.first.execute().isFailure should be(true)
+    abcd.first.execute().get should be("a")
+  }
+
+  "array executions" should "implement forall correctly" in {
+
+    val empty: Execution[Array[String]] = emptyArray()
+    val abcd = Execution{Array("a", "b", "c", "d", "")}
+    val defg = Execution{Array("d", "e", "f", "g")}
+
+    empty.forall(_.length == 1).execute() should be(true)
+    abcd.forall(_.length == 1).execute() should be(false)
+    defg.forall(_.length == 1).execute() should be(true)
+  }
+
+
 }
