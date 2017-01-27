@@ -96,6 +96,9 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
     Execution{nodes.toArray.filter(node => fn(node).execute())}.labeled("nodes filtered")
   }
 
+  def logs(): Execution[Map[String, Array[String]]] = {
+    Execution{nodes.map(node => (node.hostname, Commands.exec(node.logs))).toMap}
+  }
 }
 
 class NoSuchNodeException(message: String) extends RuntimeException(message)

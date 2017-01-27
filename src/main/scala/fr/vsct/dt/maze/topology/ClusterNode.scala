@@ -70,6 +70,13 @@ trait ClusterNode {
   def crash(): Unit
 
   /**
+    * Return the complete logs for this node
+    *
+    * @return a way to retrieve the logs, as an array
+    */
+  def logs: Execution[Array[String]]
+
+  /**
     * Execute some command on a shell
     *
     * @param command the command to execute, every parameter is a word (for instance: "ps", "aux")
