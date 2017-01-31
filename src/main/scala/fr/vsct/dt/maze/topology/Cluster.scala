@@ -16,7 +16,7 @@
 
 package fr.vsct.dt.maze.topology
 
-import fr.vsct.dt.maze.core
+import fr.vsct.dt.maze.core.Predef._
 import fr.vsct.dt.maze.core.{Commands, Execution, Predicate}
 
 import scala.concurrent.duration._
@@ -98,7 +98,7 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
   }
 
   def logs(): Execution[Map[String, Array[String]]] = {
-    Execution { nodes.map(_.logsWithName) }.map(_.toMap)
+    Execution.sequence(nodes.map{ node => node.logs.map(logs => node.hostname -> logs)}).toMap
   }
 }
 

@@ -325,6 +325,9 @@ object Predef {
     }
   }
 
+  implicit class ArrayOfTuplesExecution[A, B](val self: Execution[Array[(A, B)]]) extends AnyVal {
+    def toMap: Execution[Map[A, B]] = self.map(_.toMap).labeled(s"${self.label} as a map")
+  }
 
   /* Implicit related to ClusterNode */
   implicit class IntToClusterNodeBuilder(val n: Int) extends AnyVal {

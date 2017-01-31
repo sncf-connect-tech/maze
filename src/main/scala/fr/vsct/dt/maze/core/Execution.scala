@@ -16,13 +16,13 @@
 
 package fr.vsct.dt.maze.core
 
+import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
 /**
   * Trait defining all the checks that can be done
   */
-trait Execution[A] {
-  self =>
+trait Execution[A] { self =>
 
   val label: String
 
@@ -68,4 +68,27 @@ object Execution {
     seq.map(_.execute().get)
   }.labeled(s"The sequence of executions : \n\t- ${seq.map(_.label).mkString("\n\t- ")}")
 
+  /**
+    * Transform an array of executions into an execution of array.
+    * Any execution failing will fail the whole execution.
+    *
+    * All executions will occurr in parallel, so they will all be executed.
+    *
+    * @param executions an array of executions to transform
+    * @tparam A the return type of the executions
+    * @return the Execution[Array[A]] corresponding to the executions
+    */
+  def sequence[A: ClassTag](executions: Traversable[Execution[A]]): Execution[Array[A]] = new Execution[Array[A]]() {
+    override val label: String = s"execution of all of: ${executions.map(_.label).mkString("[", ", ", "]")}"
+    override def execute(): Try[Array[A]] = {
+      executions.toSeq
+        .par.map(_.execute())
+        .seq.foldLeft[Try[List[A]]](Success(List[A]())) { (acc, v) =>
+        for {
+          array <- acc
+          nextElement <- v
+        } yield nextElement :: array
+      }.map(_.reverse.toArray)
+    }
+  }
 }
