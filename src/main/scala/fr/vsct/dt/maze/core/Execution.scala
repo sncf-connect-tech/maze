@@ -63,4 +63,9 @@ object Execution {
       override val label: String = "Unlabeled user defined execution (use 'labeled' to give a meaning to this execution)"
     }
   }
+
+  def apply[A](seq: Traversable[Execution[A]]): Execution[Traversable[A]] = Execution {
+    seq.map(_.execute().get)
+  }.labeled(s"The sequence of executions : \n\t- ${seq.map(_.label).mkString("\n\t- ")}")
+
 }

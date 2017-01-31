@@ -77,6 +77,12 @@ trait ClusterNode {
   def logs: Execution[Array[String]]
 
   /**
+    * Return an execution of the complete logs associated with the hostname
+    * @return
+    */
+  def logsWithName: Execution[(String, Array[String])] = logs.map((hostname, _))
+
+  /**
     * Execute some command on a shell
     *
     * @param command the command to execute, every parameter is a word (for instance: "ps", "aux")

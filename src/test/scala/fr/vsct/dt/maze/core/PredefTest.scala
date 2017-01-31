@@ -206,7 +206,7 @@ class PredefTest extends FlatSpec with Matchers {
   "map executions" should "be implemented properly" in {
 
     val mapExecution = Execution[Map[String, String]] {Map("key" -> "value")}
-    val emptyMapExecution = Execution[Map[String, String]] {Map()}
+    val emptyMapExecution = Execution[Map[String, String]] { Map[String, String]()}
 
     mapExecution.hasKey("key").execute() should be(true)
     mapExecution.hasKey("key2").execute() should be(false)
