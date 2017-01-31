@@ -64,15 +64,15 @@ object Execution {
     }
   }
 
-  def apply[A](seq: Traversable[Execution[A]]): Execution[Traversable[A]] = Execution {
+  def sequentially[A](seq: Traversable[Execution[A]]): Execution[Traversable[A]] = Execution {
     seq.map(_.execute().get)
-  }.labeled(s"The sequence of executions : \n\t- ${seq.map(_.label).mkString("\n\t- ")}")
+  }.labeled(s"The sequence of executions : ${seq.map(_.label).mkString("\n\t- ", "\n\t- ", "")}")
 
   /**
     * Transform an array of executions into an execution of array.
     * Any execution failing will fail the whole execution.
     *
-    * All executions will occurr in parallel, so they will all be executed.
+    * All executions will occur in parallel, so they will all be executed.
     *
     * @param executions an array of executions to transform
     * @tparam A the return type of the executions
