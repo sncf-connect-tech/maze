@@ -16,6 +16,7 @@
 
 package fr.vsct.dt.maze.topology
 
+import fr.vsct.dt.maze.core
 import fr.vsct.dt.maze.core.{Commands, Execution, Predicate}
 
 import scala.concurrent.duration._
@@ -96,6 +97,9 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
     Execution{nodes.toArray.filter(node => fn(node).execute())}.labeled("nodes filtered")
   }
 
+  def logs(): Execution[Map[String, Array[String]]] = {
+    Execution { nodes.map(_.logsWithName) }.map(_.toMap)
+  }
 }
 
 class NoSuchNodeException(message: String) extends RuntimeException(message)

@@ -70,6 +70,19 @@ trait ClusterNode {
   def crash(): Unit
 
   /**
+    * Return the complete logs for this node
+    *
+    * @return a way to retrieve the logs, as an array
+    */
+  def logs: Execution[Array[String]]
+
+  /**
+    * Return an execution of the complete logs associated with the hostname
+    * @return
+    */
+  def logsWithName: Execution[(String, Array[String])] = logs.map((hostname, _))
+
+  /**
     * Execute some command on a shell
     *
     * @param command the command to execute, every parameter is a word (for instance: "ps", "aux")

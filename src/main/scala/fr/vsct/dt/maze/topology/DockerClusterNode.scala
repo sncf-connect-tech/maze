@@ -102,7 +102,7 @@ trait DockerClusterNode extends ClusterNode{
     *
     * @return a way to retrieve the logs, as an array
     */
-  def logs: Execution[Array[String]] = Docker.logs(containerId)
+  override def logs: Execution[Array[String]] = Docker.logs(containerId)
   /**
     * Create a file with a given content on the container
     *
