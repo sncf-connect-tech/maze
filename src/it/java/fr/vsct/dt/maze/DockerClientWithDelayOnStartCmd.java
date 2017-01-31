@@ -24,7 +24,6 @@ import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.AuthConfig;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.Identifier;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -45,92 +44,92 @@ public class DockerClientWithDelayOnStartCmd implements DockerClient {
 
     @Override
     public AuthConfig authConfig() throws DockerException {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public AuthCmd authCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public InfoCmd infoCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public PingCmd pingCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public VersionCmd versionCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public PullImageCmd pullImageCmd(@Nonnull String repository) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public PushImageCmd pushImageCmd(@Nonnull String name) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public PushImageCmd pushImageCmd(@Nonnull Identifier identifier) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public CreateImageCmd createImageCmd(@Nonnull String repository, @Nonnull InputStream imageStream) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public LoadImageCmd loadImageCmd(@Nonnull InputStream imageStream) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public SearchImagesCmd searchImagesCmd(@Nonnull String term) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public RemoveImageCmd removeImageCmd(@Nonnull String imageId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public ListImagesCmd listImagesCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public InspectImageCmd inspectImageCmd(@Nonnull String imageId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public SaveImageCmd saveImageCmd(@Nonnull String name) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public ListContainersCmd listContainersCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public CreateContainerCmd createContainerCmd(@Nonnull String image) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public StartContainerCmd startContainerCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
@@ -150,12 +149,12 @@ public class DockerClientWithDelayOnStartCmd implements DockerClient {
 
     @Override
     public WaitContainerCmd waitContainerCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public AttachContainerCmd attachContainerCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
@@ -229,156 +228,156 @@ public class DockerClientWithDelayOnStartCmd implements DockerClient {
 
     @Override
     public LogContainerCmd logContainerCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public CopyArchiveFromContainerCmd copyArchiveFromContainerCmd(@Nonnull String containerId, @Nonnull String resource) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public CopyFileFromContainerCmd copyFileFromContainerCmd(@Nonnull String containerId, @Nonnull String resource) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public CopyArchiveToContainerCmd copyArchiveToContainerCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public ContainerDiffCmd containerDiffCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public StopContainerCmd stopContainerCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public KillContainerCmd killContainerCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public UpdateContainerCmd updateContainerCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public RenameContainerCmd renameContainerCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public RestartContainerCmd restartContainerCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public CommitCmd commitCmd(@Nonnull String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public BuildImageCmd buildImageCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public BuildImageCmd buildImageCmd(File dockerFileOrFolder) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public BuildImageCmd buildImageCmd(InputStream tarInputStream) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public TopContainerCmd topContainerCmd(String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public TagImageCmd tagImageCmd(String imageId, String repository, String tag) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public PauseContainerCmd pauseContainerCmd(String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public UnpauseContainerCmd unpauseContainerCmd(String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public EventsCmd eventsCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public StatsCmd statsCmd(String containerId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public CreateVolumeCmd createVolumeCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public InspectVolumeCmd inspectVolumeCmd(String name) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public RemoveVolumeCmd removeVolumeCmd(String name) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public ListVolumesCmd listVolumesCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public ListNetworksCmd listNetworksCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public InspectNetworkCmd inspectNetworkCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public CreateNetworkCmd createNetworkCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public RemoveNetworkCmd removeNetworkCmd(@Nonnull String networkId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public ConnectToNetworkCmd connectToNetworkCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public DisconnectFromNetworkCmd disconnectFromNetworkCmd() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 
     @Override
     public void close() throws IOException {
-        throw new NotImplementedException();
+        throw new RuntimeException("Implement this method with a mock behavior if needed");
     }
 }
