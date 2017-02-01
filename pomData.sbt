@@ -33,6 +33,12 @@ developers := List (
     name = "François LAROCHE",
     email = "flaroche.prestataire@voyages-sncf.com",
     url = url("http://www.github.com/larochef")
+  ),
+  Developer(
+    id = "ylorenzati",
+    name = "Yannick LORENZATI",
+    email = "yannick.lorenzat@gmail.com",
+    url = url("http://www.github.com/ylorenza")
   )
 )
 
