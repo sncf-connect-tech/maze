@@ -29,9 +29,9 @@ scmInfo := Some(ScmInfo(
 
 developers := List (
   Developer(
-    id = "flaroche",
+    id = "larochef",
     name = "François LAROCHE",
-    email = "flaroche.prestataire@voyages-sncf.com",
+    email = "flaroche@gmail.com",
     url = url("http://www.github.com/larochef")
   ),
   Developer(
