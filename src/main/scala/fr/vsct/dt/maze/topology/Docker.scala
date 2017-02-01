@@ -292,9 +292,6 @@ object Docker extends LazyLogging {
       .exec(new LogAppender).await()
       .result.split("\n")
 
-    logger.debug(s"Got logs for container $id: ${logs.mkString("\n")}")
     logs
   }.labeled(s"logs of container $id")
-
 }
-
