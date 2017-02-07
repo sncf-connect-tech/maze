@@ -23,6 +23,7 @@ import java.util
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.command.{CreateContainerCmd, CreateNetworkResponse, InspectContainerResponse, ListContainersCmd}
+import com.github.dockerjava.api.exception.NotFoundException
 import com.github.dockerjava.api.model.Network.Ipam
 import com.github.dockerjava.api.model.Network.Ipam.Config
 import com.github.dockerjava.api.model._
@@ -121,9 +122,16 @@ object Docker extends LazyLogging {
   }
 
   def createAndStartContainer(command: CreateContainerCmd): String = {
-    val id = command.exec().getId
-    client.startContainerCmd(id).exec()
-    id
+    try {
+      val id = command.exec().getId
+      client.startContainerCmd(id).exec()
+      id
+    } catch {
+      case nfe: NotFoundException => {
+        logger.error("Container creation failed",nfe)
+        throw nfe;
+      }
+    }
   }
 
   def listContainers(): List[Container] = listContainers(client.listContainersCmd())
