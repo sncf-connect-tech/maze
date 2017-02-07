@@ -53,6 +53,8 @@ abstract class Cluster[T <: ClusterNode : ClassTag](var nodes: Seq[T] = Seq(), p
 
   def stop(): Unit = {
     nodes.foreach(_.clear())
+    // Do not keep a reference to un-usable nodes since they have been removed from the engine.
+    nodes = Seq()
   }
 
   def add(nodeBuilder: MultipleClusterNodeBuilder[T]): Seq[T] = {
