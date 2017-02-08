@@ -28,40 +28,50 @@ import com.github.dockerjava.api.model.Network.Ipam.Config
 import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.{DefaultDockerClientConfig, DockerClientBuilder, DockerClientConfig}
 import com.github.dockerjava.jaxrs.JerseyDockerCmdExecFactory
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import fr.vsct.dt.maze.core.{Commands, Execution}
 import fr.vsct.dt.maze.helpers
 import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveOutputStream}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.language.postfixOps
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
-object Docker extends LazyLogging {
+object Docker extends StrictLogging {
 
-  private val defaultProxySelector = ProxySelector.getDefault
+  case class DockerExtraConfiguration(
+                                       lowerBoundPort: Int = 50000,
+                                       upperBoundPort: Int = 59999,
+                                       dns: Seq[String] = Seq(),
+                                       dnsSearch: Seq[String] = Seq(),
+                                       networkIpRange: String = "10.20.0",
+                                       networkName: String = "technical-tests",
+                                       extraLabels: Map[String, String] = Map("test.runner" -> "maze")
+                                     )
 
-  ProxySelector.setDefault(
+  var extraConfiguration: DockerExtraConfiguration = DockerExtraConfiguration()
+
+  // Hack for docker-java to allow proxy using HTTP_PROXY / HTPS_PROXY env
+  ProxySelector.setDefault{
     new ProxySelector {
+      val defaultProxySelector: ProxySelector = ProxySelector.getDefault
       override def select(uri: URI): util.List[Proxy] = {
         val modified = if (uri.getScheme == "tcp") {
           new URI("http", uri.getUserInfo, uri.getHost, uri.getPort, uri.getPath, uri.getQuery, uri.getFragment)
         } else {
           uri
         }
-
         defaultProxySelector.select(modified)
       }
 
       override def connectFailed(uri: URI, socketAddress: SocketAddress, e: IOException): Unit =
         defaultProxySelector.connectFailed(uri, socketAddress, e)
-
     }
-  )
+  }
 
-  val lowerBoundPort: Int = System.getProperty("port.range.lower", "50000").toInt
-  val upperBoundPort: Int = System.getProperty("port.range.upper", "59999").toInt
+  def lowerBoundPort: Int = extraConfiguration.lowerBoundPort
+  def upperBoundPort: Int = extraConfiguration.upperBoundPort
 
   def constructBinding(port: Int): PortBinding = PortBinding.parse(s"$lowerBoundPort-$upperBoundPort:$port")
 
@@ -71,24 +81,29 @@ object Docker extends LazyLogging {
   private def resolveTlsSupport(): Boolean =
     Option(System.getenv("DOCKER_TLS_VERIFY")).map(_ == "1").getOrElse(!resolveDockerUri().startsWith("unix"))
 
-  private val configuration: DockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().withApiVersion("1.22")
-    .withDockerTlsVerify(resolveTlsSupport()).withDockerHost(resolveDockerUri()).build()
+  var client: DockerClient = {
+    val dockerApiVersion = Option(System.getenv("DOCKER_API_VERSION")).getOrElse("1.22")
 
-  private val dockerCmdExecFactory = {
-    val readTimeout = 60000
-    val connectTimeout: Integer = 60000
-    val totalConnections: Integer = 10
-    val connectionsPerHost: Integer = 10
+    val configuration: DockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
+      .withApiVersion(dockerApiVersion)
+      .withDockerTlsVerify(resolveTlsSupport()).withDockerHost(resolveDockerUri()).build()
 
-    new JerseyDockerCmdExecFactory()
-      .withReadTimeout(readTimeout)
-      .withConnectTimeout(connectTimeout)
-      .withMaxTotalConnections(totalConnections)
-      .withMaxPerRouteConnections(connectionsPerHost)
+    val dockerCmdExecFactory = {
+      val readTimeout = 60000
+      val connectTimeout: Integer = 60000
+      val totalConnections: Integer = 10
+      val connectionsPerHost: Integer = 10
+
+      new JerseyDockerCmdExecFactory()
+        .withReadTimeout(readTimeout)
+        .withConnectTimeout(connectTimeout)
+        .withMaxTotalConnections(totalConnections)
+        .withMaxPerRouteConnections(connectionsPerHost)
+    }
+
+    DockerClientBuilder.getInstance(configuration)
+      .withDockerCmdExecFactory(dockerCmdExecFactory).build
   }
-
-  var client: DockerClient = DockerClientBuilder.getInstance(configuration)
-    .withDockerCmdExecFactory(dockerCmdExecFactory).build
 
   private val TcpHost = """^tcp://([^:]+).*""".r
 
@@ -113,11 +128,24 @@ object Docker extends LazyLogging {
       client.pullImageCmd(image).exec(new WaitForCallbackResponse[PullResponseItem]()).await()
     }
 
-    client.createContainerCmd(image)
+    var cmd = client.createContainerCmd(image)
       .withCapAdd(Capability.NET_ADMIN)
       .withPrivileged(true)
-      .withDnsSearch("socrate.vsct.fr")
       .withNetworkMode(helpers.DockerNetwork.networkName)
+
+    if(extraConfiguration.dns.nonEmpty) {
+      cmd = cmd.withDns(extraConfiguration.dns:_*)
+    }
+
+    if(extraConfiguration.dnsSearch.nonEmpty) {
+      cmd = cmd.withDnsSearch(extraConfiguration.dnsSearch:_*)
+    }
+
+    if(extraConfiguration.extraLabels.nonEmpty) {
+      cmd = cmd.withLabels(extraConfiguration.extraLabels.asJava)
+    }
+
+    cmd
   }
 
   def createAndStartContainer(command: CreateContainerCmd): String = {
