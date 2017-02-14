@@ -29,9 +29,9 @@ import scala.util.Try
 
 object DockerNetwork extends StrictLogging {
 
-  val networkName = "technical-tests"
-  val networkRange = "10.20.0"
-  val subnet = s"$networkRange.0/24"
+  def networkName: String = Docker.extraConfiguration.networkName
+  def networkRange: String = Docker.extraConfiguration.networkIpRange
+  def subnet: String = s"$networkRange.0/24"
 
   var nodesWithIpTablesModified: Seq[DockerClusterNode] = Seq()
 
@@ -79,8 +79,8 @@ object DockerNetwork extends StrictLogging {
   }
 
   private val acceptAllRules = "iptables -F && iptables -P INPUT ACCEPT && iptables -P OUTPUT ACCEPT && iptables -P FORWARD ACCEPT"
-  private val dropAllRules = s"iptables -A INPUT -d $subnet -j DROP && iptables -A OUTPUT -d $subnet -j DROP && iptables -A FORWARD -d $subnet -j DROP"
-  private val acceptGatewayRules =
+  private def dropAllRules = s"iptables -A INPUT -d $subnet -j DROP && iptables -A OUTPUT -d $subnet -j DROP && iptables -A FORWARD -d $subnet -j DROP"
+  private def acceptGatewayRules =
     s"iptables -A INPUT -d $networkRange.1 -j ACCEPT && iptables -A OUTPUT -d $networkRange.1 -j ACCEPT && iptables -A FORWARD -d $networkRange.1 -j ACCEPT"
   private val saveIpTablesRules = "/sbin/service iptables save"
 
