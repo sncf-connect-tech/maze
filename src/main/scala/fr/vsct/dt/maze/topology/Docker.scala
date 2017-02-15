@@ -37,6 +37,7 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.util.{Failure, Success, Try}
 
 object Docker extends StrictLogging {
 
@@ -150,8 +151,24 @@ object Docker extends StrictLogging {
 
   def createAndStartContainer(command: CreateContainerCmd): String = {
     val id = command.exec().getId
-    client.startContainerCmd(id).exec()
+    retry(4, s"startContainerCmd(${id}id).exec()")(client.startContainerCmd(id).exec())
     id
+  }
+
+  @annotation.tailrec
+  def retry[T](n: Int, retryLibel: String)(fn: => T): T = {
+    Try {
+      fn
+    } match {
+      case Success(x) => x
+      case Failure(e)  if n <= 1 =>
+        logger.error(s"Error [0 retry left] during $retryLibel, propagate exception", e)
+        throw e
+      case Failure(e) if n > 1 =>
+        logger.warn(s"Error [${n - 1} retry left] during $retryLibel", e)
+        Commands.waitFor(250 milliseconds)
+        retry(n - 1, retryLibel)(fn)
+    }
   }
 
   def listContainers(): List[Container] = listContainers(client.listContainersCmd())
