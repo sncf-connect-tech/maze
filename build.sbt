@@ -16,6 +16,7 @@
 
 moduleName := "maze"
 organization := "fr.vsct.dt"
+sonatypeProfileName := "fr.vsct"
 
 scalaVersion := "2.12.1"
 
