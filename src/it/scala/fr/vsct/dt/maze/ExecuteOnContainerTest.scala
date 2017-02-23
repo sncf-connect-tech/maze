@@ -16,17 +16,10 @@
 
 package fr.vsct.dt.maze
 
-import java.io.{File, InputStream}
-import java.lang.Boolean
-import java.util.{Timer, TimerTask}
-import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
-
 import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.command._
-import com.github.dockerjava.api.model.{AuthConfig, Frame, Identifier}
-import com.google.common.util.concurrent.AbstractScheduledService.Scheduler
 import fr.vsct.dt.maze.core.Commands
+import fr.vsct.dt.maze.dockerclient.DockerClientWithDelayOnStartCmd
 import fr.vsct.dt.maze.topology.Docker.DockerProcessExecution
 import fr.vsct.dt.maze.topology.{Docker, SingleContainerClusterNode}
 import org.scalatest.BeforeAndAfter
@@ -38,6 +31,7 @@ class ExecuteOnContainerTest extends TechnicalTest with BeforeAndAfter {
 
   class DummyContainer extends SingleContainerClusterNode {
     override def serviceContainer: CreateContainerCmd = "busybox".withEntrypoint("sleep", "2000s")
+
     override val servicePort: Int = 9000
   }
 
@@ -64,7 +58,7 @@ class ExecuteOnContainerTest extends TechnicalTest with BeforeAndAfter {
     duration should be >= 2000L
   }
 
-  "execution on container" should  "wait until execution is over" in {
+  "execution on container" should "wait until execution is over" in {
 
     val start = System.currentTimeMillis()
     val result: Array[String] = Commands.exec(container.shellExecution("/bin/sh", "-c", "sleep 10s && echo done!"))
@@ -75,7 +69,7 @@ class ExecuteOnContainerTest extends TechnicalTest with BeforeAndAfter {
     duration should be <= 11000L
   }
 
-  "execution on container" should  "handle return codes != 0 as errors" in {
+  "execution on container" should "handle return codes != 0 as errors" in {
     val result: Try[Array[String]] = container.shellExecution("/bin/sh", "-c", "sleep sometime").execute()
 
     result match {
