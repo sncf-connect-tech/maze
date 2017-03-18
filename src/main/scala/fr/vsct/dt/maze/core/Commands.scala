@@ -143,7 +143,7 @@ object Commands extends StrictLogging {
 
   private def repeatInternal(predicate: Predicate,
                              equalityFunction: PredicateResult => Boolean,
-                             butNoLongerThan: FiniteDuration = 5 minutes)
+                             butNoLongerThan: FiniteDuration)
                             (doSomething: => Unit): Duration = {
     val deadline = Deadline.now + butNoLongerThan
     var result = predicate.get()
