@@ -237,15 +237,7 @@ object Predef {
     def stringValue(): Execution[String] = self.map(_.getStringValue)
   }
 
-  implicit class IntExecution(self: Execution[Int]) extends RichNumericExecution[Int](self)
-
-  implicit class LongExecution(self: Execution[Long]) extends RichNumericExecution[Long](self)
-
-  implicit class FloatExecution(self: Execution[Float]) extends RichNumericExecution[Float](self)
-
-  implicit class DoubleExecution(self: Execution[Double]) extends RichNumericExecution[Double](self)
-
-  abstract class RichNumericExecution[A](self: Execution[A])(implicit implicitNumeric: Numeric[A]) extends RichOrderedExecution[A](self) {
+  implicit class RichNumericExecution[A](self: Execution[A])(implicit implicitNumeric: Numeric[A]) {
 
     import implicitNumeric.mkNumericOps
 
@@ -259,7 +251,7 @@ object Predef {
     def +(other: A): Execution[A] = self.map(_ + other).labeled(s"${self.label} + $other")
   }
 
-  abstract class RichOrderedExecution[A](self: Execution[A])(implicit implicitOrdering: Ordering[A]) {
+  implicit class RichOrderedExecution[A](self: Execution[A])(implicit implicitOrdering: Ordering[A]) {
 
     import implicitOrdering.mkOrderingOps
 
