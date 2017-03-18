@@ -38,11 +38,11 @@ class PredefTest extends FlatSpec with Matchers {
       }
     } is "ok"
 
-    predicate.get().result should be (Success(true))
+    predicate.get().result should be(Success(true))
     val predicateResult = predicate.get()
-    predicateResult.result should be (Success(false))
+    predicateResult.result should be(Success(false))
     predicateResult.message should be("Expected 'ko' to be 'ok'")
-    predicate.get().result should be (Failure(exception))
+    predicate.get().result should be(Failure(exception))
 
   }
 
@@ -54,13 +54,15 @@ class PredefTest extends FlatSpec with Matchers {
 
     val predicate = execution is execution
 
-    (0 to 20).foreach{_ => Commands.expectThat(predicate)}
+    (0 to 20).foreach { _ => Commands.expectThat(predicate) }
 
-    val koExecution = Execution{"ko"}
+    val koExecution = Execution {
+      "ko"
+    }
 
     val predicateResult = (execution is koExecution).get()
     predicateResult.message should be("Expected 'ko' to be 'ok'")
-    predicateResult.result should be (Success(false))
+    predicateResult.result should be(Success(false))
   }
 
   "the isNot function" should "test equality as needed" in {
@@ -76,9 +78,9 @@ class PredefTest extends FlatSpec with Matchers {
       }
     } isNot "ko"
 
-    predicate.get().result should be (Success(true))
-    predicate.get().result should be (Success(false))
-    predicate.get().result should be (Failure(exception))
+    predicate.get().result should be(Success(true))
+    predicate.get().result should be(Success(false))
+    predicate.get().result should be(Failure(exception))
 
   }
 
@@ -94,8 +96,8 @@ class PredefTest extends FlatSpec with Matchers {
       }
     }.isError
 
-    predicate.get().result should be (Success(false))
-    predicate.get().result should be (Success(true))
+    predicate.get().result should be(Success(false))
+    predicate.get().result should be(Success(true))
 
   }
 
@@ -111,8 +113,8 @@ class PredefTest extends FlatSpec with Matchers {
       }
     }.isSuccess
 
-    predicate.get().result should be (Success(true))
-    predicate.get().result should be (Success(false))
+    predicate.get().result should be(Success(true))
+    predicate.get().result should be(Success(false))
 
   }
 
@@ -123,29 +125,35 @@ class PredefTest extends FlatSpec with Matchers {
     }
 
     execution.withSnapshot { snap =>
-      (0 to 100).foreach {_ =>
+      (0 to 100).foreach { _ =>
         Commands.expectThat(snap is 1)
       }
     }
   }
 
   "recovery functions" should "provide default values" in {
-    val execution: Execution[String] = Execution{
+    val execution: Execution[String] = Execution {
       throw new IllegalStateException("simulated")
     }
     Commands.exec(execution.recoverWith("ok")) should be("ok")
   }
 
   "recovery functions" should "return normal value if no exception occurs" in {
-    val execution: Execution[String] = Execution{"original"}
+    val execution: Execution[String] = Execution {
+      "original"
+    }
     Commands.exec(execution.recoverWith("ok")) should be("original")
   }
 
   "array executions" should "implement exists correctly" in {
 
     val empty: Execution[Array[String]] = emptyArray()
-    val abcd = Execution{Array("a", "b", "c", "d", "")}
-    val defg = Execution{Array("d", "e", "f", "g")}
+    val abcd = Execution {
+      Array("a", "b", "c", "d", "")
+    }
+    val defg = Execution {
+      Array("d", "e", "f", "g")
+    }
 
     empty.exists(_.length == 0, "some empty string").execute() should be(false)
     abcd.exists(_.length == 0, "some empty string").execute() should be(true)
@@ -155,8 +163,12 @@ class PredefTest extends FlatSpec with Matchers {
   "array executions" should "implement cotains correctly" in {
 
     val empty: Execution[Array[String]] = emptyArray()
-    val abcd = Execution{Array("a", "b", "c", "d", "")}
-    val defg = Execution{Array("d", "e", "f", "g")}
+    val abcd = Execution {
+      Array("a", "b", "c", "d", "")
+    }
+    val defg = Execution {
+      Array("d", "e", "f", "g")
+    }
 
     empty.contains("c", "c").execute() should be(false)
     abcd.contains("c", "c").execute() should be(true)
@@ -166,8 +178,12 @@ class PredefTest extends FlatSpec with Matchers {
   "array executions" should "implement length correctly" in {
 
     val empty: Execution[Array[String]] = emptyArray()
-    val abcd = Execution{Array("a", "b", "c", "d", "")}
-    val defg = Execution{Array("d", "e", "f", "g")}
+    val abcd = Execution {
+      Array("a", "b", "c", "d", "")
+    }
+    val defg = Execution {
+      Array("d", "e", "f", "g")
+    }
 
     empty.length.execute().get should be(0)
     abcd.length.execute().get should be(5)
@@ -177,7 +193,9 @@ class PredefTest extends FlatSpec with Matchers {
   "array executions" should "implement isEmpty correctly" in {
 
     val empty: Execution[Array[String]] = emptyArray()
-    val abcd = Execution{Array("a", "b", "c", "d", "")}
+    val abcd = Execution {
+      Array("a", "b", "c", "d", "")
+    }
 
     empty.isEmpty.execute() should be(true)
     abcd.isEmpty.execute() should be(false)
@@ -186,7 +204,9 @@ class PredefTest extends FlatSpec with Matchers {
   "array executions" should "implement first correctly" in {
 
     val empty: Execution[Array[String]] = emptyArray()
-    val abcd = Execution{Array("a", "b", "c", "d", "")}
+    val abcd = Execution {
+      Array("a", "b", "c", "d", "")
+    }
 
     empty.first.execute().isFailure should be(true)
     abcd.first.execute().get should be("a")
@@ -195,8 +215,12 @@ class PredefTest extends FlatSpec with Matchers {
   "array executions" should "implement forall correctly" in {
 
     val empty: Execution[Array[String]] = emptyArray()
-    val abcd = Execution{Array("a", "b", "c", "d", "")}
-    val defg = Execution{Array("d", "e", "f", "g")}
+    val abcd = Execution {
+      Array("a", "b", "c", "d", "")
+    }
+    val defg = Execution {
+      Array("d", "e", "f", "g")
+    }
 
     empty.forall(_.length == 1).execute() should be(true)
     abcd.forall(_.length == 1).execute() should be(false)
@@ -205,8 +229,12 @@ class PredefTest extends FlatSpec with Matchers {
 
   "map executions" should "be implemented properly" in {
 
-    val mapExecution = Execution[Map[String, String]] {Map("key" -> "value")}
-    val emptyMapExecution = Execution[Map[String, String]] { Map[String, String]()}
+    val mapExecution = Execution[Map[String, String]] {
+      Map("key" -> "value")
+    }
+    val emptyMapExecution = Execution[Map[String, String]] {
+      Map[String, String]()
+    }
 
     mapExecution.hasKey("key").execute() should be(true)
     mapExecution.hasKey("key2").execute() should be(false)
@@ -228,9 +256,15 @@ class PredefTest extends FlatSpec with Matchers {
 
   "string executions" should "work as expected" in {
 
-    Execution{"string"}.length.execute().get should be("string".length)
-    Execution{"string"}.contains("tri").execute() should be(true)
-    Execution{"string"}.contains("test").execute() should be(false)
+    Execution {
+      "string"
+    }.length.execute().get should be("string".length)
+    Execution {
+      "string"
+    }.contains("tri").execute() should be(true)
+    Execution {
+      "string"
+    }.contains("test").execute() should be(false)
 
   }
 
@@ -276,5 +310,39 @@ class PredefTest extends FlatSpec with Matchers {
     (first + other).execute().get should be(7)
     (other + first).execute().get should be(7)
     (first + 2).execute().get should be(7)
+  }
+
+  "array executions" should "implement append correctly" in {
+    val abcd = Execution {
+      Array("a", "b", "c", "d")
+    }
+    val defg = Execution {
+      Array("e", "f", "g")
+    }
+    val result = abcd.append(defg).execute().get
+
+    result should not be empty
+    result should equal(Array("a", "b", "c", "d", "e", "f", "g"))
+  }
+
+  "array executions" should "implement removeDuplicates correctly" in {
+    val duplicateList = Execution {
+      Array("a", "b", "a", "c", "d", "c")
+    }
+
+    val result = duplicateList.removeDuplicates().execute().get
+    result should not be empty
+    result should have size 4
+  }
+
+  "array executions" should "implement find correctly" in {
+    val listContains = Execution {
+      Array(1, 2, 3, 4, 5)
+    }
+    val listNotContains = Execution {
+      Array(1, 3)
+    }
+    listContains.find(_ % 2 == 0).exists().execute() should be(true)
+    listNotContains.find(_ % 2 == 0).exists().execute() should be(false)
   }
 }
