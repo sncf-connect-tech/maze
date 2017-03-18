@@ -29,7 +29,6 @@ import org.apache.http.entity.{ContentType, StringEntity}
 import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 
-import scala.language.implicitConversions
 import scala.util.Try
 
 
@@ -161,10 +160,10 @@ object Http extends StrictLogging {
     }
 
     def httpPost(
-                 path: String,
-                 data: String, contentType: String,
-                 headers: Map[String, String] = Map(),
-                 internalPort: Int = servicePort): Execution[HttpResponse] = {
+                  path: String,
+                  data: String, contentType: String,
+                  headers: Map[String, String] = Map(),
+                  internalPort: Int = servicePort): Execution[HttpResponse] = {
 
       http(
         uri = path,
@@ -175,11 +174,11 @@ object Http extends StrictLogging {
     }
 
     def httpPut(
-                path: String,
-                data: String,
-                contentType: String,
-                headers: Map[String, String] = Map(),
-                internalPort: Int = servicePort): Execution[HttpResponse] = {
+                 path: String,
+                 data: String,
+                 contentType: String,
+                 headers: Map[String, String] = Map(),
+                 internalPort: Int = servicePort): Execution[HttpResponse] = {
 
       http(uri = path,
         method = PUT,
@@ -196,8 +195,7 @@ object Http extends StrictLogging {
 
       val fullUrl = s"${baseUrl(internalPort)}$uri"
       val r = method match {
-        case GET =>
-          new HttpGet(fullUrl)
+        case GET => new HttpGet(fullUrl)
         case POST =>
           val request = new HttpPost(fullUrl)
           body.foreach(b => request.setEntity(b))
@@ -214,6 +212,8 @@ object Http extends StrictLogging {
           request
         case OPTIONS => new HttpOptions(fullUrl)
       }
+
+      headers.foreach { case (name, value) => r.setHeader(name, value) }
       Http.execute(r)
     }
 

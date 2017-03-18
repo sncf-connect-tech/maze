@@ -19,6 +19,21 @@ organization := "fr.vsct.dt"
 sonatypeProfileName := "fr.vsct"
 
 scalaVersion := "2.12.1"
+scalacOptions ++= Seq(
+  "-Yrangepos",
+  "-Xlint",
+  "-deprecation",
+  // "-Xfatal-warnings",
+  "-feature",
+  "-encoding", "UTF-8",
+  "-unchecked",
+  "-Yno-adapted-args",
+  "-Ywarn-dead-code",
+  "-Xfuture",
+  "-Ywarn-unused",
+  "-Ywarn-unused-import",
+  "-Ydelambdafy:method"
+)
 
 libraryDependencies ++= Seq(
   "org.apache.httpcomponents" % "httpclient" % "4.5.2",
@@ -41,3 +56,5 @@ scalastyleFailOnError := true
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
 parallelExecution in IntegrationTest := false
+
+addCompilerPlugin("org.psywerx.hairyfotr" %% "linter" % "0.1.17")
