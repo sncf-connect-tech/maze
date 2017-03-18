@@ -29,7 +29,6 @@ import org.apache.http.entity.{ContentType, StringEntity}
 import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 
-import scala.language.implicitConversions
 import scala.util.Try
 
 
