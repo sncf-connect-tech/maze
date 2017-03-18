@@ -201,7 +201,7 @@ object Predef {
 
     def isNotEmpty: Predicate = self.toPredicate(s"${self.label} is not empty?") {
       case m if m.nonEmpty => Result.success
-      case _ => Result.failure(s"Expected map to be not empty, but it is empty")
+      case _ => Result.failure("Expected map to be not empty, but it is empty")
     }
   }
 
