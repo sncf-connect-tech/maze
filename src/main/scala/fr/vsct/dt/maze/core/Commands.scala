@@ -19,6 +19,7 @@ package fr.vsct.dt.maze.core
 import com.typesafe.scalalogging.StrictLogging
 import fr.vsct.dt.maze.topology.{ClusterNodeGroupBuilder, DockerClusterNode, NodeGroup}
 
+import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
@@ -103,7 +104,7 @@ object Commands extends StrictLogging {
   }
 
   def waitUntil(predicate: Predicate, butNoLongerThan: FiniteDuration = 5 minutes): Duration =
-    waitInternal(predicate, !_.result.getOrElse(false), butNoLongerThan)
+    waitInternal(predicate, !_.result.getOrElse(false), Deadline.now + butNoLongerThan)
 
 
   /* waitWhile methods */
@@ -116,7 +117,7 @@ object Commands extends StrictLogging {
   }
 
   def waitWhile(predicate: Predicate, butNoLongerThan: FiniteDuration = 5 minutes): Duration =
-    waitInternal(predicate, _.result.getOrElse(false), butNoLongerThan)
+    waitInternal(predicate, _.result.getOrElse(false), Deadline.now + butNoLongerThan)
 
 
   /* repeatWhile methods */
@@ -133,28 +134,29 @@ object Commands extends StrictLogging {
   }
 
   def repeatWhile(predicate: Predicate, butNoLongerThan: FiniteDuration = 5 minutes)(doSomething: => Unit): Duration =
-    repeatInternal(predicate, _.result.getOrElse(false), butNoLongerThan)(doSomething)
+    repeatInternal(predicate, _.result.getOrElse(false), Deadline.now + butNoLongerThan)(doSomething)
 
 
   /* internals */
-  private val waitInternal: (Predicate, PredicateResult => Boolean, FiniteDuration) => Duration = repeatInternal(_, _, _) {
+  private val waitInternal: (Predicate, PredicateResult => Boolean, Deadline) => Duration = repeatInternal(_, _, _) {
     waitFor(20 milliseconds)
   }
 
+  @tailrec
   private def repeatInternal(predicate: Predicate,
                              equalityFunction: PredicateResult => Boolean,
-                             butNoLongerThan: FiniteDuration)
+                             deadline: Deadline)
                             (doSomething: => Unit): Duration = {
-    val deadline = Deadline.now + butNoLongerThan
-    var result = predicate.get()
-    while (equalityFunction(result)) {
+    val result = predicate.get()
+    if (equalityFunction(result)) {
       if (deadline.isOverdue()) {
-        throw new TimeoutException(s"Condition '${predicate.label}' didn't occur within $butNoLongerThan: ${result.message}.")
+        throw new TimeoutException(s"Condition '${predicate.label}' didn't occur within ${deadline.time}: ${result.message}.")
       }
       doSomething
-      result = predicate.get()
+      repeatInternal(predicate, equalityFunction, deadline)(doSomething)
+    } else {
+      deadline.timeLeft
     }
-    butNoLongerThan - deadline.timeLeft
   }
 
   /* Nodes group methods */
