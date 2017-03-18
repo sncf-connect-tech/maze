@@ -41,3 +41,5 @@ scalastyleFailOnError := true
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
 parallelExecution in IntegrationTest := false
+
+addCompilerPlugin("org.psywerx.hairyfotr" %% "linter" % "0.1.17")
