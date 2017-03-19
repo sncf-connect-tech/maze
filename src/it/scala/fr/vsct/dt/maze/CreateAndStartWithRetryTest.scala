@@ -66,12 +66,12 @@ class CreateAndStartWithRetryTest extends TechnicalTest {
     expectNginxclusterIsOk
   }
 
-  "a nginx" should "do all that's needed when there is 1 retry" in {
+  it should "do all that's needed when there is 1 retry" in {
     Docker.client = new DockerClientWithStartRetry(Docker.client, 1)
     expectNginxclusterIsOk
   }
 
-  "a nginx" should "fail when there is more fail than retry number" in {
+  it should "fail when there is more fail than retry number" in {
     Docker.client = new DockerClientWithStartRetry(Docker.client, Int.MaxValue)
 
     assertThrows[FakeRetryException] {

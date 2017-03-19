@@ -58,7 +58,7 @@ class ExecuteOnContainerTest extends TechnicalTest with BeforeAndAfter {
     duration should be >= 2000L
   }
 
-  "execution on container" should "wait until execution is over" in {
+  it should "wait until execution is over" in {
 
     val start = System.currentTimeMillis()
     val result: Array[String] = Commands.exec(container.shellExecution("/bin/sh", "-c", "sleep 10s && echo done!"))
@@ -69,7 +69,7 @@ class ExecuteOnContainerTest extends TechnicalTest with BeforeAndAfter {
     duration should be <= 11000L
   }
 
-  "execution on container" should "handle return codes != 0 as errors" in {
+  it should "handle return codes != 0 as errors" in {
     val result: Try[Array[String]] = container.shellExecution("/bin/sh", "-c", "sleep sometime").execute()
 
     result match {
