@@ -41,9 +41,13 @@ import scala.util.{Failure, Success, Try}
 
 object Docker extends StrictLogging {
 
+  val defaultRetries: Int = 4
+  val defaultLowerBoundPort: Int = 50000
+  val defaultUpperBoundPort: Int = 59999
+
   case class DockerExtraConfiguration(
-                                       lowerBoundPort: Int = 50000,
-                                       upperBoundPort: Int = 59999,
+                                       lowerBoundPort: Int = Docker.defaultLowerBoundPort,
+                                       upperBoundPort: Int = Docker.defaultUpperBoundPort,
                                        dns: Seq[String] = Seq(),
                                        dnsSearch: Seq[String] = Seq(),
                                        networkIpRange: String = "10.20.0",
@@ -151,7 +155,9 @@ object Docker extends StrictLogging {
 
   def createAndStartContainer(command: CreateContainerCmd): String = {
     val id = command.exec().getId
-    retry(4, s"startContainerCmd(${id}id).exec()")(client.startContainerCmd(id).exec())
+    retry(defaultRetries, s"startCreatedContainer($id)"){
+      startCreatedContainer(id)
+    }
     id
   }
 
@@ -281,9 +287,8 @@ object Docker extends StrictLogging {
   }
 
   def restartContainer(id: String): Unit = {
-    client.stopContainerCmd(id).exec()
-    client.waitContainerCmd(id).exec(new WaitForCallbackResponse[WaitResponse]()).await()
-    client.startContainerCmd(id).exec()
+    stopContainer(id)
+    startCreatedContainer(id)
   }
 
   def startCreatedContainer(id: String): Unit = {
