@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2016 VSCT
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package fr.vsct.dt.maze
 
 import java.io.File
@@ -7,6 +23,7 @@ import com.github.dockerjava.core.command.BuildImageResultCallback
 import fr.vsct.dt.maze.core.Commands.{expectThat, _}
 import fr.vsct.dt.maze.core.Predef._
 import fr.vsct.dt.maze.core.{Predicate, Result}
+import fr.vsct.dt.maze.helpers.DockerNetwork
 import fr.vsct.dt.maze.helpers.DockerNetwork._
 import fr.vsct.dt.maze.helpers.Http.HttpEnabled
 import fr.vsct.dt.maze.topology.{Docker, SingleContainerClusterNode}
@@ -28,7 +45,7 @@ class PartitionsTest extends TechnicalTest {
      */
   class PartitionNode extends SingleContainerClusterNode with HttpEnabled {
     override def serviceContainer: CreateContainerCmd = imageName
-    override def servicePort: Int = 80
+    override val servicePort: Int = 80
 
     def canCommunicateWith(other: PartitionNode): Predicate = {
       canCurl(other) && other.canCurl(this)
@@ -118,6 +135,31 @@ class PartitionsTest extends TechnicalTest {
     isolate(tag(secondNode).as("isolated"))
 
     expectThat(firstNode canCommunicateWith thirdNode)
+  }
+
+  "cancelling isolation" should "allow communication again" in {
+
+    isolate(tag(secondNode).as("isolated"))
+
+    expectThat(firstNode cannotCommunicateWith  secondNode)
+    expectThat(thirdNode cannotCommunicateWith  secondNode)
+
+    DockerNetwork.cancelIsolation()
+
+    expectThat(firstNode canCommunicateWith secondNode)
+    expectThat(thirdNode canCommunicateWith secondNode)
+  }
+
+  "cancelling split brain" should "allow communication again" in {
+    split(firstNode + secondNode, thirdNode)
+
+    expectThat(firstNode cannotCommunicateWith thirdNode)
+    expectThat(secondNode cannotCommunicateWith  thirdNode)
+
+    DockerNetwork.cancelIsolation()
+
+    expectThat(firstNode canCommunicateWith thirdNode)
+    expectThat(secondNode canCommunicateWith  thirdNode)
   }
 
   override protected def afterEach(): Unit = {

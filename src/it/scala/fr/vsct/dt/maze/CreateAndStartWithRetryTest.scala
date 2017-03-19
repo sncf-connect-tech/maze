@@ -33,7 +33,7 @@ class CreateAndStartWithRetryTest extends TechnicalTest {
   class NginxClusterNode extends SingleContainerClusterNode with HttpEnabled {
     override def serviceContainer: CreateContainerCmd = "nginx"
 
-    override def servicePort: Int = 80
+    override val servicePort: Int = 80
   }
 
   var preservedDockerClient: DockerClient = _
@@ -63,12 +63,12 @@ class CreateAndStartWithRetryTest extends TechnicalTest {
 
   "a nginx" should "do all that's needed when there is no retry" in {
     Docker.client = new DockerClientWithStartRetry(Docker.client)
-    expectNginxclusterIsOk
+    expectNginxclusterIsOk()
   }
 
   it should "do all that's needed when there is 1 retry" in {
     Docker.client = new DockerClientWithStartRetry(Docker.client, 1)
-    expectNginxclusterIsOk
+    expectNginxclusterIsOk()
   }
 
   it should "fail when there is more fail than retry number" in {

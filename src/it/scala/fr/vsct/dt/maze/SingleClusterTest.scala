@@ -59,7 +59,7 @@ object Helper {
 
   class NginxClusterNode extends SingleContainerClusterNode with HttpEnabled {
     override def serviceContainer: CreateContainerCmd = "nginx"
-    override def servicePort: Int = 80
+    override val servicePort: Int = 80
   }
 
   class NginxCluster extends Cluster[NginxClusterNode] {}
