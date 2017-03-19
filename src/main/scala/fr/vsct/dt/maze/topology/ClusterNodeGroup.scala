@@ -16,27 +16,17 @@
 
 package fr.vsct.dt.maze.topology
 
-import java.util.UUID
-
 import fr.vsct.dt.maze.helpers.DockerNetwork
 
 import scala.collection.mutable
 
 class ClusterNodeGroupBuilder[T <: DockerClusterNode](val nodes: Seq[T]){
-  def as(name: String):ClusterNodeGroup[T] = {
-    new ClusterNodeGroup[T](name, nodes)
-  }
+  def as(name: String):ClusterNodeGroup[T] = new ClusterNodeGroup[T](name, nodes)
 }
 
 class ClusterNodeGroup[+T <: DockerClusterNode](val name: String, val nodes: Seq[T]) {
 
   ClusterNodeGroup.register(this)
-
-  def length: Int = nodes.length
-
-  def apply(index: Int): T = nodes(index)
-
-  def iterator: Iterator[T] = nodes.iterator
 
   def isolate(): Unit = {
     DockerNetwork.isolate(this)
@@ -54,16 +44,5 @@ object ClusterNodeGroup {
   def get[T <: DockerClusterNode](name: String):ClusterNodeGroup[T] = {
     groups.getOrElse(name, new ClusterNodeGroup[T](name, Seq())).asInstanceOf[ClusterNodeGroup[T]]
   }
-
-  def apply[T <: DockerClusterNode](nodes:Seq[T], name: String): ClusterNodeGroup[T] = {
-    val resolvedName = if(name == "undefined") {
-      UUID.randomUUID().toString
-    } else {
-      name
-    }
-    new ClusterNodeGroup[T](resolvedName, nodes)
-  }
-
-  def apply[T <: DockerClusterNode](node:T, name: String = "undefined"): ClusterNodeGroup[T] = ClusterNodeGroup(Seq(node), name)
 
 }

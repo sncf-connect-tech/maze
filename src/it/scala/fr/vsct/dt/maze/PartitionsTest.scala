@@ -24,7 +24,6 @@ import fr.vsct.dt.maze.core.Commands.{expectThat, _}
 import fr.vsct.dt.maze.core.Predef._
 import fr.vsct.dt.maze.core.{Predicate, Result}
 import fr.vsct.dt.maze.helpers.DockerNetwork
-import fr.vsct.dt.maze.helpers.DockerNetwork._
 import fr.vsct.dt.maze.helpers.Http.HttpEnabled
 import fr.vsct.dt.maze.topology.{Docker, SingleContainerClusterNode}
 
@@ -109,14 +108,14 @@ class PartitionsTest extends TechnicalTest {
 
   "a partition of three nodes in two and one" should "keep communication between the two" in {
 
-    split(firstNode + secondNode, thirdNode)
+    DockerNetwork.split(firstNode + secondNode, thirdNode)
 
     expectThat(firstNode canCommunicateWith secondNode)
   }
 
   it should "prevent communication with the one" in {
 
-    split(firstNode + secondNode, thirdNode)
+    DockerNetwork.split(firstNode + secondNode, thirdNode)
 
     expectThat(firstNode cannotCommunicateWith thirdNode)
     expectThat(secondNode cannotCommunicateWith  thirdNode)
@@ -124,7 +123,7 @@ class PartitionsTest extends TechnicalTest {
 
   "isolating one node" should "prevent it from communicating with the others" in {
 
-    isolate(tag(secondNode).as("isolated"))
+    tag(secondNode).as("isolated").isolate()
 
     expectThat(firstNode cannotCommunicateWith secondNode)
     expectThat(secondNode cannotCommunicateWith thirdNode)
@@ -132,14 +131,14 @@ class PartitionsTest extends TechnicalTest {
 
   it should "not mess with communication between remaining nodes" in {
 
-    isolate(tag(secondNode).as("isolated"))
+    tag(secondNode).as("isolated").isolate()
 
     expectThat(firstNode canCommunicateWith thirdNode)
   }
 
   "cancelling isolation" should "allow communication again" in {
 
-    isolate(tag(secondNode).as("isolated"))
+    tag(secondNode).as("isolated").isolate()
 
     expectThat(firstNode cannotCommunicateWith  secondNode)
     expectThat(thirdNode cannotCommunicateWith  secondNode)
@@ -151,7 +150,7 @@ class PartitionsTest extends TechnicalTest {
   }
 
   "cancelling split brain" should "allow communication again" in {
-    split(firstNode + secondNode, thirdNode)
+    DockerNetwork.split(firstNode + secondNode, thirdNode)
 
     expectThat(firstNode cannotCommunicateWith thirdNode)
     expectThat(secondNode cannotCommunicateWith  thirdNode)
