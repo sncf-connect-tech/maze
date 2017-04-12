@@ -7,7 +7,7 @@ sudo: required
 services:
   - docker
 script:
-  - "sbt clean coverage test it:test"
+  - "sbt +clean +coverage +test +it:test"
 after_success:
   - "sbt coverageReport"
   - "sbt codacyCoverage"
