@@ -19,6 +19,7 @@ organization := "fr.vsct.dt"
 sonatypeProfileName := "fr.vsct"
 
 scalaVersion := "2.12.1"
+
 scalacOptions ++= Seq(
   "-Yrangepos",
   "-Xlint",
@@ -56,5 +57,8 @@ scalastyleFailOnError := true
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
 parallelExecution in IntegrationTest := false
+
+crossScalaVersions := Seq("2.12.1", "2.11.8")
+
 
 addCompilerPlugin("org.psywerx.hairyfotr" %% "linter" % "0.1.17")
