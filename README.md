@@ -29,8 +29,7 @@ Maze is a unit test library, made for scalatest, that will have the following li
 
 All the tests will then consist in communications with your applications / tools, deployed as docker images and the unit test, orchestrating them.
 
-## Get it in your project
-
+## Get it in your project
 
 ### Using sbt (preferred)
 
